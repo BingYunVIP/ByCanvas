@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>冰云生图</title>
+<link rel="icon" type="image/png" href="assets/logo.png">
+<link rel="apple-touch-icon" href="assets/logo.png">
+<script src="js/i18n.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fontsapi.zeoseven.com/442/main/result.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@lobehub/webfont-harmony-sans-sc@1.0.0/css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/dark.css">
+</head>
+<body class="overflow-hidden h-screen">
+
+
+<!-- Header -->
+<header class="header">
+  <a class="brand" href="https://img.bingyun.vip" target="_blank" rel="noopener">
+    <span class="brand-logo"><img src="assets/logo.png" alt="" /></span>
+    <span class="brand-name"><span data-i18n="冰云生图">冰云生图</span></span>
+  </a>
+
+  <nav class="nav-group" aria-label="冰云链接" data-i18n-aria-label="冰云链接">
+    <a class="nav-link" href="https://api.bingyun.vip" target="_blank" rel="noopener">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+      <span data-i18n="冰云AI">冰云AI</span>
+    </a>
+    <a class="nav-link" href="https://shop.bingyun.vip" target="_blank" rel="noopener">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+      <span data-i18n="冰云小店">冰云小店</span>
+    </a>
+    <a class="nav-link" href="https://docs.bingyun.vip" target="_blank" rel="noopener">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      <span data-i18n="冰云文档">冰云文档</span>
+    </a>
+  </nav>
+
+  <div class="header-actions">
+    <button class="icon-btn" id="themeToggleBtn" title="切换到深色模式" data-i18n-title="切换到深色模式" onclick="toggleTheme()">
+      <svg id="themeIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+    </button>
+    <button class="icon-btn" id="languageToggleBtn" type="button" title="Switch to English" aria-label="Switch to English" lang="en" onclick="toggleLanguage()">
+      <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6m-7 0 6-6 2-3M2 5h12M7 2h1m14 20-5-10-5 10m2-4h6"/></svg>
+    </button>
+    <button class="icon-btn" title="设置" data-i18n-title="设置" aria-label="设置" data-i18n-aria-label="设置" onclick="openSettings()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="workspace">
+
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <button class="btn-new" onclick="handleNewConversation()" title="开始新对话" data-i18n-title="开始新对话">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        <span data-i18n="新对话">新对话</span>
+      </button>
+      <button class="btn-group" onclick="createGroup()" title="新建分组（双击分组名可重命名）" data-i18n-title="新建分组（双击分组名可重命名）">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11v5m-2.5-2.5h5"/></svg>
+        <span data-i18n="新分组">新分组</span>
+      </button>
+      <div class="search-wrap" id="searchWrap">
+        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input id="searchInput" class="search-input" placeholder="搜索对话或分组" data-i18n-placeholder="搜索对话或分组" aria-label="搜索对话或分组" data-i18n-aria-label="搜索对话或分组" />
+        <button class="search-clear" onclick="clearSearch()" aria-label="清空搜索" data-i18n-aria-label="清空搜索">×</button>
+      </div>
+    </div>
+
+    <div class="conv-list" id="convList"></div>
+    <div id="multiBar" hidden></div>
+  </aside>
+
+  <!-- 主区 -->
+  <main class="main">
+    <div class="toolbar">
+      <div class="title-wrap">
+        <button class="title-button" id="titleBtn" onclick="startTitleEdit()" title="点击重命名" data-i18n-title="点击重命名">
+          <h2 id="mainTitle"><span data-i18n="新对话">新对话</span></h2>
+          <svg class="title-pen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+        </button>
+      </div>
+      <div class="toolbar-actions">
+        <!-- 只搜索当前对话内的聊天记录 -->
+        <div class="search-wrap chat-search" id="chatSearchWrap">
+          <svg class="search-icon" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input id="chatSearchInput" class="search-input" type="text" placeholder="搜索当前对话" data-i18n-placeholder="搜索当前对话" aria-label="搜索当前对话" data-i18n-aria-label="搜索当前对话" oninput="runChatSearch()" onkeydown="if(event.key==='Escape'){event.preventDefault();clearChatSearch();}" />
+          <button class="search-clear" type="button" onclick="clearChatSearch()" aria-label="清空当前对话搜索" data-i18n-aria-label="清空当前对话搜索">×</button>
+        </div>
+        <!-- 历史提问：过往提交过的提示词 -->
+        <button class="btn-share" id="historyBtn" onclick="toggleHistoryPanel(event)" title="查看历史提问" data-i18n-title="查看历史提问">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span data-i18n="历史提问">历史提问</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="empty">
+        <div class="empty-orb">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        <div class="empty-title"><span data-i18n="开始你的创作">开始你的创作</span></div>
+        <div class="empty-sub"><span data-i18n="输入描述即可生成图片">输入描述即可生成图片</span></div>
+
+        <div id="skeletonWrap" style="display:none; width: 100%; max-width: 560px; margin-top: 32px;">
+          <div class="skeleton-card">
+            <div class="skeleton-thumb"></div>
+            <div class="skeleton-lines">
+              <div></div><div></div><div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 对话详情：点击左侧对话后展示提示词与生成结果 -->
+      <div class="chat-view" id="chatView" hidden></div>
+
+    </div>
+
+    <div class="composer-area" id="composerArea">
+      <div class="composer" id="composer">
+        <div id="composerResizeHandle" class="composer-resize-handle" role="separator" aria-orientation="horizontal" aria-label="调整输入区域高度" data-i18n-aria-label="调整输入区域高度" aria-controls="composer" tabindex="0" title="拖动上边框调整高度，也可使用上下方向键" data-i18n-title="拖动上边框调整高度，也可使用上下方向键"></div>
+        <div class="composer-images" id="composerImages" hidden></div>
+
+          <div class="composer-input-wrap">
+            <div id="promptInput" class="composer-input" contenteditable="true" role="textbox" tabindex="0" aria-multiline="true" aria-label="输入提示词，Markdown 实时排版" data-i18n-aria-label="输入提示词，Markdown 实时排版" data-placeholder="描述你想生成的图片，可输入 @ 来指定参考图..." data-i18n-data-placeholder="描述你想生成的图片，可输入 @ 来指定参考图..." spellcheck="false"></div>
+          </div>
+
+        <div class="composer-divider">
+          <div class="params-grid" id="paramsGrid">
+            <div class="pill-wrap">
+              <button class="pill" onclick="togglePillMenu(event, 'model')" title="点击选择模型" data-i18n-title="点击选择模型">
+                <span class="pill-label"><span data-i18n="模型">模型</span></span>
+                <span class="pill-value is-model" id="val-model">GPT Image 2.5 Flare</span>
+                <svg class="pill-caret" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+              <div class="pill-menu is-wide" id="menu-model"></div>
+            </div>
+            <div class="pill-wrap">
+              <button class="pill" onclick="togglePillMenu(event, 'reasoning')" title="点击选择推理强度" data-i18n-title="点击选择推理强度">
+                <span class="pill-label"><span data-i18n="推理">推理</span></span>
+                <span class="pill-value" id="val-reasoning"><span data-i18n="自动">自动</span></span>
+                <svg class="pill-caret" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+              <div class="pill-menu" id="menu-reasoning"></div>
+            </div>
+            <div class="pill-wrap">
+              <button class="pill" onclick="togglePillMenu(event, 'quality')" title="点击选择质量" data-i18n-title="点击选择质量">
+                <span class="pill-label"><span data-i18n="质量">质量</span></span>
+                <span class="pill-value" id="val-quality">auto</span>
+                <svg class="pill-caret" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+              <div class="pill-menu" id="menu-quality"></div>
+            </div>
+            <button class="grid-action attach" id="attachBtn" title="上传参考图（可多选）" data-i18n-title="上传参考图（可多选）" onclick="openImagePicker()">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+              <span id="val-attach" hidden><span data-i18n="不适用">不适用</span></span>
+            </button>
+
+            <div class="pill-wrap">
+              <button class="pill" onclick="togglePillMenu(event, 'format')" title="点击选择图片格式" data-i18n-title="点击选择图片格式">
+                <span class="pill-label"><span data-i18n="格式">格式</span></span>
+                <span class="pill-value" id="val-format">PNG</span>
+                <svg class="pill-caret" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+              <div class="pill-menu" id="menu-format"></div>
+            </div>
+            <div class="pill-wrap">
+              <button class="pill" onclick="togglePillMenu(event, 'transparent')" title="点击选择是否透明背景" data-i18n-title="点击选择是否透明背景">
+                <span class="pill-label"><span data-i18n="透明">透明</span></span>
+                <span class="pill-value" id="val-transparent">false</span>
+                <svg class="pill-caret" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+              <div class="pill-menu" id="menu-transparent"></div>
+            </div>
+            <div class="pill-wrap">
+              <button class="pill" onclick="openSizePicker(event)" title="点击设置图像尺寸" data-i18n-title="点击设置图像尺寸">
+                <span class="pill-label"><span data-i18n="尺寸">尺寸</span></span>
+                <span class="pill-value" id="val-size">auto</span>
+                <svg class="pill-caret" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+              <div class="pill-menu" id="menu-size"></div>
+            </div>
+            <button class="grid-action send" id="sendBtn" title="发送按钮" data-i18n-title="发送按钮" aria-label="发送按钮" data-i18n-aria-label="发送按钮" onclick="handleSend()">
+              <svg id="sendIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-7-7l7 7-7 7"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="chat-jump-wrap" id="chatJumpWrap" hidden>
+      <button class="chat-jump" type="button" onclick="jumpToLatest()" aria-label="返回最新消息" data-i18n-aria-label="返回最新消息">
+        <svg aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m-6-6l6 6 6-6"/></svg>
+        <span data-i18n="最新消息">最新消息</span>
+      </button>
+    </aside>
+  </main>
+</div>
+
+<!-- 历史提问面板（absolute 定位，放 body 末尾避免打乱 main 的子元素索引） -->
+<div class="history-panel" id="historyPanel" hidden></div>
+
+<div id="settingsRoot"></div>
+<div id="sizeRoot"></div>
+
+<!-- 提示层 / 确认层：fixed 定位，JS 按主内容区可见矩形居中 -->
+<div class="toast-layer" id="toastLayer">
+  <div class="toast-card" id="toastCard">
+    <span class="toast-icon" id="toastIcon"></span>
+    <span id="toastText"></span>
+  </div>
+</div>
+<div id="confirmRoot"></div>
+<div id="shareRoot"></div>
+<input type="file" id="imageFileInput" accept="image/*" multiple hidden />
+
+<script type="module" src="js/api.js"></script>
+<script type="module" src="js/image-export.js"></script>
+<script type="module" src="js/db.js"></script>
+<script type="module" src="js/chat-format.js"></script>
+<script type="module" src="js/composer-editor.js"></script>
+<script type="module" src="js/composer-resize.js"></script>
+<script defer src="js/app.js"></script>
+</body>
+</html>

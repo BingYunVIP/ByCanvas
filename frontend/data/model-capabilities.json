@@ -1,0 +1,730 @@
+{
+  "verifiedAt": "2026-09-20",
+  "sources": {
+    "reasoningEfforts": "OpenRouter /api/v1/models → reasoning.supported_efforts",
+    "vision": "OpenRouter /api/v1/models → architecture.input_modalities",
+    "qualityOptions": "官方公开档位（OpenRouter 不提供图片参数，见 tools/sync_model_capabilities.py）"
+  },
+  "models": {
+    "dall-e-2": {
+      "qualityOptions": [
+        "standard"
+      ],
+      "source": "https://developers.openai.com/api/reference/cli/resources/images/methods/generate",
+      "imageParameters": {
+        "size": {
+          "options": [
+            "256x256",
+            "512x512",
+            "1024x1024"
+          ]
+        },
+        "output_format": false,
+        "background": false
+      },
+      "vision": null,
+      "reasoningEfforts": []
+    },
+    "dall-e-3": {
+      "qualityOptions": [
+        "standard",
+        "hd"
+      ],
+      "source": "https://developers.openai.com/api/reference/cli/resources/images/methods/generate",
+      "imageParameters": {
+        "size": {
+          "options": [
+            "1024x1024",
+            "1792x1024",
+            "1024x1792"
+          ]
+        },
+        "output_format": false,
+        "background": false
+      },
+      "vision": null,
+      "reasoningEfforts": []
+    },
+    "gpt-3.5-turbo": {
+      "reasoningEfforts": [],
+      "vision": false,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-3.5-turbo-0613": {
+      "reasoningEfforts": [],
+      "vision": false,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-3.5-turbo-16k": {
+      "reasoningEfforts": [],
+      "vision": false,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-3.5-turbo-instruct": {
+      "reasoningEfforts": [],
+      "vision": false,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-4": {
+      "reasoningEfforts": [],
+      "vision": false,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-4-turbo": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-4.1": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-4.1-mini": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-4.1-nano": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-4o": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-4o-2024-05-13": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-4o-2024-08-06": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-4o-2024-11-20": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-4o-mini": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-4o-mini-2024-07-18": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5": {
+      "reasoningEfforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-5-image": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningUnknownEfforts": true,
+      "reasoningMandatory": true
+    },
+    "gpt-5-image-mini": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningUnknownEfforts": true,
+      "reasoningMandatory": true
+    },
+    "gpt-5-mini": {
+      "reasoningEfforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-5-nano": {
+      "reasoningEfforts": [
+        "minimal",
+        "low",
+        "medium",
+        "high"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-5-pro": {
+      "reasoningEfforts": [
+        "high"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-5.1": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5.1-codex": {
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-5.1-codex-max": {
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-5.1-codex-mini": {
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5.2": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5.2-chat": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5.2-codex": {
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-5.2-pro": {
+      "reasoningEfforts": [
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-5.3-codex": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5.4": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5.4-image-2": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5.4-mini": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5.4-nano": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5.4-pro": {
+      "reasoningEfforts": [
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-5.5": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5.5-pro": {
+      "reasoningEfforts": [
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-5.6-luna": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5.6-luna-pro": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5.6-sol": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5.6-sol-pro": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5.6-terra": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-5.6-terra-pro": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-6-astra": {
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-6-astra-pro": {
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-audio": {
+      "reasoningEfforts": [],
+      "vision": false,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-audio-mini": {
+      "reasoningEfforts": [],
+      "vision": false,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-chat-latest": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-image-1": {
+      "qualityOptions": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ],
+      "source": "https://developers.openai.com/api/reference/resources/images/methods/generate",
+      "imageParameters": {
+        "size": {
+          "options": [
+            "auto",
+            "1024x1024",
+            "1536x1024",
+            "1024x1536"
+          ]
+        },
+        "output_format": {
+          "options": [
+            "png",
+            "jpeg",
+            "webp"
+          ]
+        },
+        "background": {
+          "options": [
+            "auto",
+            "opaque",
+            "transparent"
+          ]
+        }
+      },
+      "vision": null,
+      "reasoningEfforts": []
+    },
+    "gpt-image-1-mini": {
+      "qualityOptions": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ],
+      "source": "https://developers.openai.com/api/reference/resources/images/methods/generate",
+      "imageParameters": {
+        "size": {
+          "options": [
+            "auto",
+            "1024x1024",
+            "1536x1024",
+            "1024x1536"
+          ]
+        },
+        "output_format": {
+          "options": [
+            "png",
+            "jpeg",
+            "webp"
+          ]
+        },
+        "background": {
+          "options": [
+            "auto",
+            "opaque",
+            "transparent"
+          ]
+        }
+      },
+      "vision": null,
+      "reasoningEfforts": []
+    },
+    "gpt-image-1.5": {
+      "qualityOptions": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ],
+      "source": "https://developers.openai.com/api/reference/resources/images/methods/generate",
+      "imageParameters": {
+        "size": {
+          "options": [
+            "auto",
+            "1024x1024",
+            "1536x1024",
+            "1024x1536"
+          ]
+        },
+        "output_format": {
+          "options": [
+            "png",
+            "jpeg",
+            "webp"
+          ]
+        },
+        "background": {
+          "options": [
+            "auto",
+            "opaque",
+            "transparent"
+          ]
+        }
+      },
+      "vision": null,
+      "reasoningEfforts": []
+    },
+    "gpt-image-2": {
+      "qualityOptions": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ],
+      "source": "https://developers.openai.com/api/reference/cli/resources/images/methods/generate",
+      "imageParameters": {
+        "size": {},
+        "output_format": {
+          "options": [
+            "png",
+            "jpeg",
+            "webp"
+          ]
+        },
+        "background": {
+          "options": [
+            "auto",
+            "opaque",
+            "transparent"
+          ]
+        }
+      },
+      "vision": null,
+      "reasoningEfforts": []
+    },
+    "gpt-image-2.5-flare": {
+      "qualityOptions": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "source": "https://developers.openai.com/api/docs/models/gpt-image-2.5-flare",
+      "imageParameters": {
+        "size": {},
+        "output_format": {
+          "options": [
+            "png",
+            "jpeg",
+            "webp"
+          ]
+        },
+        "background": {
+          "options": [
+            "auto",
+            "opaque",
+            "transparent"
+          ]
+        }
+      },
+      "vision": null,
+      "reasoningEfforts": []
+    },
+    "gpt-image-2.5-sunburst": {
+      "qualityOptions": [
+        "auto",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "source": "https://developers.openai.com/api/docs/models/gpt-image-2.5-sunburst",
+      "imageParameters": {
+        "size": {},
+        "output_format": {
+          "options": [
+            "png",
+            "jpeg",
+            "webp"
+          ]
+        },
+        "background": {
+          "options": [
+            "auto",
+            "opaque",
+            "transparent"
+          ]
+        }
+      },
+      "vision": null,
+      "reasoningEfforts": []
+    },
+    "gpt-oss-120b": {
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "vision": false,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-oss-20b": {
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "vision": false,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-oss-safeguard-20b": {
+      "reasoningEfforts": [],
+      "vision": false,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningUnknownEfforts": true,
+      "reasoningMandatory": true
+    },
+    "o1": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningUnknownEfforts": true
+    },
+    "o1-pro": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningUnknownEfforts": true
+    },
+    "o3": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningUnknownEfforts": true
+    },
+    "o3-mini": {
+      "reasoningEfforts": [],
+      "vision": false,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningUnknownEfforts": true
+    },
+    "o3-mini-high": {
+      "reasoningEfforts": [
+        "high"
+      ],
+      "vision": false,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "o3-pro": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningUnknownEfforts": true
+    },
+    "o4-mini": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningUnknownEfforts": true
+    },
+    "o4-mini-high": {
+      "reasoningEfforts": [
+        "high"
+      ],
+      "vision": true,
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    }
+  },
+  "aliases": {
+    "gpt-image-2-2026-04-21": "gpt-image-2",
+    "gpt-image-2.5-flare-2026-09-08": "gpt-image-2.5-flare",
+    "gpt-image-2.5-sunburst-2026-09-08": "gpt-image-2.5-sunburst"
+  }
+}

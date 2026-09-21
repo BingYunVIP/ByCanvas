@@ -1,0 +1,9 @@
+# ByChat&IMG 后端依赖（与 backend/pyproject.toml 的 dependencies 保持一致，
+# 给不方便用 uv sync 的场景 —— 比如已经用 uv venv 建好 .venv 的情况）
+
+fastapi>=0.110
+uvicorn[standard]>=0.27
+httpx[socks]>=0.27
+python-dotenv>=1.0
+pydantic-settings>=2.2
+python-multipart>=0.0.9

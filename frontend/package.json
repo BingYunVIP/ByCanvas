@@ -1,0 +1,9 @@
+{
+  "name": "bychat-img-frontend",
+  "private": true,
+  "type": "module",
+  "description": "纯静态前端，无构建步骤，由 backend 直接托管。声明 type=module 便于 node --check 做语法检查。",
+  "devDependencies": {
+    "fake-indexeddb": "6.2.5"
+  }
+}

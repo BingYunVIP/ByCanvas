@@ -1,0 +1,34 @@
+{
+  "profiles": [
+    {
+      "id": "default-image",
+      "isDefault": true,
+      "name": "生图 / 改图",
+      "description": "通过本服务的同源代理访问，先填入你的 API Key。",
+      "provider": "openai",
+      "baseUrl": "",
+      "apiKey": "",
+      "model": "gpt-image-2.5-sunburst",
+      "imageGenerationModel": "gpt-image-2.5-sunburst",
+      "timeout": 600,
+      "apiMode": "images",
+      "codexCli": false,
+      "apiProxy": true,
+      "transparentBackgroundMethod": "api"
+    },
+    {
+      "id": "default-agent",
+      "name": "Agent 对话",
+      "description": "用于 Agent 模式的对话与工具调用，通过本服务的同源代理访问。",
+      "provider": "openai",
+      "baseUrl": "",
+      "apiKey": "",
+      "model": "gpt-5.6-sol",
+      "timeout": 600,
+      "apiMode": "responses",
+      "codexCli": false,
+      "apiProxy": true,
+      "transparentBackgroundMethod": "api"
+    }
+  ]
+}
