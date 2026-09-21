@@ -2,9 +2,7 @@
 # 供本地前台启动工具使用的小工具。
 # 由调用方 source：source "$(dirname "${BASH_SOURCE[0]}")/_common.sh"
 
-# sudo 会用一套干净的 PATH（secure_path），而 uv 通常装在 ~/.local/bin 里，
-# 直接 `sudo bash install_service.sh` 就会报 "uv: command not found"。
-# 这里把常见位置都补进 PATH 再找。
+# uv 可能安装在用户目录或系统目录，这里检查常见位置。
 _resolve_uv() {
   local c
   for c in \

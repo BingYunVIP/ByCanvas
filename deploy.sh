@@ -36,7 +36,8 @@ usage() {
 ByChat_IMG deployment manager
 
 Usage:
-  sudo bash deploy.sh [command] [options]
+  bash deploy.sh [command] [options]       # from a root shell
+  sudo bash deploy.sh [command] [options]  # from a sudo-enabled account
 
 Commands:
   install      First installation or redeployment (default interactive menu)
@@ -64,7 +65,7 @@ EOF
 }
 
 menu() {
-  [[ -t 0 ]] || die "no command supplied; run 'sudo bash deploy.sh help'"
+  [[ -t 0 ]] || die "no command supplied; run 'bash deploy.sh help'"
   cat <<'EOF'
 ByChat_IMG deployment manager
   1) Install / update
@@ -149,7 +150,12 @@ parse_args() {
 }
 
 check_system() {
-  [[ "$(id -u)" -eq 0 ]] || die "run with sudo: sudo bash deploy.sh $COMMAND"
+  if [[ "$(id -u)" -ne 0 ]]; then
+    if command -v sudo >/dev/null 2>&1; then
+      die "root privileges are required; run: sudo bash deploy.sh $COMMAND"
+    fi
+    die "root privileges are required; switch to root (for example, 'su - root'), then run: bash deploy.sh $COMMAND"
+  fi
   [[ -r "$OS_RELEASE_FILE" ]] || die "cannot read $OS_RELEASE_FILE"
 
   local ID="" VERSION_ID="" PRETTY_NAME=""
@@ -237,7 +243,7 @@ init_state() {
 
 require_state() {
   [[ -f "$STATE_DIR/.managed" && -s "$STATE_DIR/project-id" ]] || \
-    die "this project has not been installed; run 'sudo bash deploy.sh install'"
+    die "this project has not been installed; run 'bash deploy.sh install' as root"
 }
 
 lock_deployment() {
@@ -436,21 +442,36 @@ prepare_release() {
 }
 
 systemd_quote() {
-  local value="$1" mode="${2:-plain}"
+  local value="$1"
   value="${value//\\/\\\\}"
   value="${value//\"/\\\"}"
   value="${value//%/%%}"
-  [[ "$mode" != "exec" ]] || value="${value//\$/\$\$}"
   printf '"%s"' "$value"
+}
+
+systemd_path() {
+  local value="$1" output="" character index
+  for ((index = 0; index < ${#value}; index++)); do
+    character="${value:index:1}"
+    case "$character" in
+      ' ') output+='\x20' ;;
+      \\) output+='\x5c' ;;
+      '"') output+='\x22' ;;
+      "'") output+='\x27' ;;
+      '%') output+='%%' ;;
+      *) output+="$character" ;;
+    esac
+  done
+  printf '%s' "$output"
 }
 
 write_unit() {
   local release="$1" output="$2" project_id group work python script frontend
   project_id="$(tr -d '\r\n' < "$STATE_DIR/project-id")"
   group="$(id -gn "$RUN_USER")"
-  work="$(systemd_quote "$release/backend")"
-  python="$(systemd_quote "$release/backend/.venv/bin/python" exec)"
-  script="$(systemd_quote "$release/backend/serve.py" exec)"
+  work="$(systemd_path "$release/backend")"
+  python="$(systemd_quote "$release/backend/.venv/bin/python")"
+  script="$(systemd_quote "$release/backend/serve.py")"
   frontend="$(systemd_quote "FRONTEND_DIR=$release/frontend")"
 
   {
@@ -466,7 +487,7 @@ write_unit() {
     printf 'User=%s\n' "$RUN_USER"
     printf 'Group=%s\n' "$group"
     printf 'WorkingDirectory=%s\n' "$work"
-    printf 'ExecStart=%s %s %s %s\n' "$python" "$script" "$PORT" "$(systemd_quote "$BIND" exec)"
+    printf 'ExecStart=:%s %s %s %s\n' "$python" "$script" "$PORT" "$(systemd_quote "$BIND")"
     printf 'Environment=PYTHONUNBUFFERED=1\n'
     printf 'Environment=PYTHONDONTWRITEBYTECODE=1\n'
     printf 'Environment=%s\n' "$frontend"

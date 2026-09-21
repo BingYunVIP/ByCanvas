@@ -3,7 +3,7 @@
 #
 # ⚠️ 这个脚本是**前台**运行：终端一关，后端就死。
 #    要长期挂着（以及部署到 VPS），请用 systemd：
-#       sudo bash deploy.sh install
+#       以 root 身份运行 bash deploy.sh install
 #
 # 用法：
 #   bash tools/start_backend.sh          # 默认 7400
@@ -36,7 +36,7 @@ install_deps "$VENV" "$BACKEND"
 # 顺手把 WSL 的 IP 打出来，Windows 浏览器连不上 localhost 时可以用它
 WSL_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 echo
-echo "→ 启动后端（前台；关掉终端就停。要常驻请用 sudo bash deploy.sh install）"
+echo "→ 启动后端（前台；关掉终端就停。要常驻请以 root 身份运行 bash deploy.sh install）"
 echo "   WSL 内访问：     http://127.0.0.1:$PORT"
 echo "   Windows 浏览器： http://localhost:$PORT"
 [ -n "${WSL_IP:-}" ] && echo "                 或 http://$WSL_IP:$PORT"

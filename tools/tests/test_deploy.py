@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import pwd
-import shutil
 import subprocess
 import tempfile
 import unittest
@@ -85,7 +84,7 @@ actual="$(current_release)"
 
     def test_systemd_unit_handles_spaces_unicode_and_special_characters(self) -> None:
         current_user = pwd.getpwuid(os.getuid()).pw_name
-        with tempfile.TemporaryDirectory(prefix='ByChat 空格 $%') as temp:
+        with tempfile.TemporaryDirectory(prefix='ByChat 空格 $HOME %') as temp:
             root = Path(temp)
             state = root / '.deploy'
             release = state / 'releases' / '20260921T120000-test'
@@ -113,7 +112,17 @@ write_unit {shlex_quote(str(release))} {shlex_quote(str(unit))}
             content = unit.read_text(encoding='utf-8')
             self.assertIn('Restart=always', content)
             self.assertIn('WantedBy=multi-user.target', content)
-            self.assertIn('$$%%', content)
+            self.assertIn('ExecStart=:', content)
+            self.assertIn('$HOME', content)
+            self.assertNotIn('$$HOME', content)
+            working_directory = next(
+                line for line in content.splitlines()
+                if line.startswith('WorkingDirectory=')
+            )
+            self.assertTrue(working_directory.startswith('WorkingDirectory=/'))
+            self.assertNotIn('WorkingDirectory="', working_directory)
+            self.assertIn(r'\x20', working_directory)
+            self.assertIn('%%', working_directory)
 
             verify = subprocess.run(
                 ['systemd-analyze', 'verify', str(unit)],
@@ -129,14 +138,27 @@ write_unit {shlex_quote(str(release))} {shlex_quote(str(unit))}
                 self.assertNotIn('Failed to prepare filename', verify.stderr)
                 self.assertNotIn('Unknown key', verify.stderr)
                 self.assertNotIn('Failed to parse', verify.stderr)
+                self.assertNotIn('path is not absolute', verify.stderr)
+                self.assertNotIn('bad unit file setting', verify.stderr)
+                self.assertNotIn('fatal error', verify.stderr)
 
     def test_documentation_has_no_proxy_or_container_configuration(self) -> None:
-        deploy_doc = (ROOT / 'DEPLOY.md').read_text(encoding='utf-8')
+        public_files = '\n'.join(
+            path.read_text(encoding='utf-8')
+            for path in (ROOT / 'README.md', DEPLOY)
+        )
         for forbidden in ('proxy_pass', 'certbot', 'server_name', 'listen 443', 'docker compose'):
             with self.subTest(forbidden=forbidden):
-                self.assertNotIn(forbidden, deploy_doc.lower())
-        self.assertNotIn('/opt/', deploy_doc)
+                self.assertNotIn(forbidden, public_files.lower())
+        self.assertNotIn('/opt/', public_files)
         self.assertFalse((ROOT / 'backend' / 'Dockerfile').exists())
+
+    def test_readme_documents_https_clone_and_root_without_sudo(self) -> None:
+        readme = (ROOT / 'README.md').read_text(encoding='utf-8')
+        self.assertIn('git clone https://github.com/BingYunVIP/ByChat_IMG.git', readme)
+        self.assertNotIn('git clone git@github.com:BingYunVIP/ByChat_IMG.git', readme)
+        self.assertIn('bash deploy.sh install', readme)
+        self.assertIn('su - root', readme)
 
     def test_activation_switches_release_and_records_previous(self) -> None:
         with tempfile.TemporaryDirectory(prefix='bychat activate ') as temp:

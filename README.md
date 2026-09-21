@@ -24,9 +24,28 @@
 支持 Ubuntu 和 Debian。项目可以放在任意可读取目录，包括带空格或中文的路径。
 
 ```bash
-git clone git@github.com:BingYunVIP/ByChat_IMG.git
+git clone https://github.com/BingYunVIP/ByChat_IMG.git
 cd ByChat_IMG
+```
+
+已经进入 root 账号时（命令提示符通常以 `#` 结尾）：
+
+```bash
+bash deploy.sh install
+```
+
+普通账号且系统安装了 `sudo` 时：
+
+```bash
 sudo bash deploy.sh install
+```
+
+系统没有 `sudo` 时，先切换到 root，再进入项目目录部署：
+
+```bash
+su - root
+cd /实际路径/ByChat_IMG
+bash deploy.sh install
 ```
 
 默认监听 `7400` 端口：
@@ -38,21 +57,23 @@ http://服务器IP:7400
 自定义端口或运行用户：
 
 ```bash
-sudo bash deploy.sh install --port 8000
-sudo bash deploy.sh install --user appuser
+bash deploy.sh install --port 8000
+bash deploy.sh install --user appuser
 ```
 
 ## 服务管理
 
 ```bash
-sudo bash deploy.sh status
-sudo bash deploy.sh logs
-sudo bash deploy.sh restart
-sudo bash deploy.sh update
-sudo bash deploy.sh rollback
-sudo bash deploy.sh doctor
-sudo bash deploy.sh uninstall
+bash deploy.sh status
+bash deploy.sh logs
+bash deploy.sh restart
+bash deploy.sh update
+bash deploy.sh rollback
+bash deploy.sh doctor
+bash deploy.sh uninstall
 ```
+
+以上部署和管理命令需要 root 权限。普通账号可在命令前加 `sudo`；没有 `sudo` 的系统请先使用 `su - root`。
 
 查看全部参数：
 

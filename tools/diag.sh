@@ -23,11 +23,11 @@ hr
 if command -v systemctl >/dev/null 2>&1 && systemctl list-unit-files 2>/dev/null | grep -q "$SERVICE"; then
   systemctl is-active "$SERVICE" >/dev/null 2>&1 \
     && echo "   $SERVICE：● 运行中" \
-    || echo "   $SERVICE：○ 没在跑（启动：sudo systemctl start $SERVICE）"
+    || echo "   $SERVICE：○ 没在跑（以 root 身份运行：systemctl start $SERVICE）"
   systemctl --no-pager -l status "$SERVICE" 2>/dev/null | grep -E "Active:|Main PID:|ExecStart" | sed 's/^/   /'
 else
   echo "   没有装 systemd 服务（本机多半是前台跑的，终端一关就没了）"
-  echo "   建议：sudo bash deploy.sh install"
+  echo "   建议：以 root 身份运行 bash deploy.sh install"
 fi
 
 hr
