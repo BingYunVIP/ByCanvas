@@ -13,7 +13,7 @@ PORT="${1:-7400}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKEND="$ROOT/backend"
 VENV="$BACKEND/.venv"
-SERVICE="bychat-backend"
+SERVICE="bycanvas-backend"
 
 hr() { echo "────────────────────────────────────────────"; }
 

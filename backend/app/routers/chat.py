@@ -20,13 +20,67 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
 from .. import log as applog
+from ..config import settings
 from ..deps import Upstream, resolve_upstream
 from ..protocols.streaming import CHAT_MODES, stream_chat
 from ..schemas import ChatRequest, ImagePlanRequest
 from ..upstream import bearer_headers, describe_error, extract_upstream_error, http_timeout, summarize_usage
+from .models import guess_kind
 
 router = APIRouter(prefix='/api', tags=['chat'])
-IMAGE_TEXT_MODEL = 'gpt-5.6-sol'
+
+# 生图 / 改图前的「需求解析」要借一个**文本**模型跑一次工具调用（前端 js/image-plan.js）。
+# 这个模型名**不能写死**：2026-10-12 的真实故障就是这里写死了 'gpt-5.6-sol'，而当时的
+# 上游（api.bingyun.vip）只有 grok-* 一族，上游回
+#   HTTP 404 {"error":{"message":"Model \"gpt-5.6-sol\" is not supported by any
+#             configured account in this group","type":"model_not_found"}}
+# 前端把含 "not supported" 的报错统一翻成「该模型当前不可用」，并挂在**用户选中的
+# 图像模型**上 —— 用户以为 grok-imagine-image-2.0 坏了，实测它 9.4 秒正常出图；真正
+# 坏的是这个写死的辅助模型，而且所有图像模型都因此生不出图。
+#
+# 现在默认留空 = 运行时从上游 /models 里挑一个聊天模型（见 _resolve_plan_model），
+# 需要固定时用 .env 的 IMAGE_PLAN_MODEL 覆盖。
+IMAGE_PLAN_MODEL = settings.image_plan_model.strip()
+
+# 解析结果按上游地址缓存，避免每张图都多打一次 /models。
+_PLAN_MODEL_TTL_SECONDS = 300.0
+_plan_model_cache: dict[str, tuple[float, str]] = {}
+
+
+async def _resolve_plan_model(client: httpx.AsyncClient, up: Upstream) -> str:
+    """挑一个能跑工具调用的文本模型来做「图片需求解析」。
+
+    优先用 .env 指定的 IMAGE_PLAN_MODEL；没指定就去上游 /models 里挑第一个聊天
+    模型（按 id 判定，image / video 一族排除）。挑不到返回空串，由调用方明确报错，
+    而不是拿一个上游不认的名字去撞 404。
+    """
+    if IMAGE_PLAN_MODEL:
+        return IMAGE_PLAN_MODEL
+
+    now = time.time()
+    cached = _plan_model_cache.get(up.base_url)
+    if cached and cached[0] > now:
+        return cached[1]
+
+    try:
+        resp = await client.get(
+            f'{up.base_url}/models', headers=bearer_headers(up.api_key),
+            timeout=httpx.Timeout(10.0),
+        )
+        payload = resp.json() if resp.status_code == 200 else None
+    except (httpx.HTTPError, ValueError):
+        payload = None
+
+    items = payload.get('data') if isinstance(payload, dict) else payload
+    ids = [str(item['id']) for item in (items or [])
+           if isinstance(item, dict) and isinstance(item.get('id'), str)]
+    chat_ids = [model_id for model_id in ids if guess_kind(model_id) == 'chat']
+    chosen = chat_ids[0] if chat_ids else ''
+
+    applog.log('生图需求解析：上游 %d 个模型，选中辅助模型 %s', len(ids), chosen or '（没有可用的文本模型）')
+    if chosen:
+        _plan_model_cache[up.base_url] = (now + _PLAN_MODEL_TTL_SECONDS, chosen)
+    return chosen
 
 
 @router.post('/image-plan')
@@ -36,13 +90,19 @@ async def image_plan(req: ImagePlanRequest, up: Upstream = Depends(resolve_upstr
     allowed = {'input', 'instructions', 'messages', 'tools', 'tool_choice', 'parallel_tool_calls'}
     body = {key: value for key, value in req.body.items() if key in allowed}
     # 不接收界面或旧任务中的 model / reasoning 设置；省略推理字段即自动。
-    body['model'] = IMAGE_TEXT_MODEL
     body['stream'] = False
     if req.mode == 'responses':
         body['store'] = False
     headers = bearer_headers(up.api_key)
     try:
         async with httpx.AsyncClient(timeout=http_timeout()) as client:
+            body['model'] = await _resolve_plan_model(client, up)
+            if not body['model']:
+                raise HTTPException(
+                    status_code=502,
+                    detail='上游模型列表里没有可用于解析图片需求的文本模型；'
+                           '请在 backend/.env 里用 IMAGE_PLAN_MODEL 指定一个。',
+                )
             response = await client.post(f'{up.base_url}/{paths[req.mode]}', headers=headers, json=body)
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail=describe_error(exc)) from exc
@@ -102,7 +162,7 @@ async def chat(req: ChatRequest, up: Upstream = Depends(resolve_upstream)):
             req.mode, req.model, waited, running, applog.thread_count(),
         )
         if waited > 1:
-            applog.log('⚠️ 排队 %.1fs —— 服务端忙不过来，请求在干等', waited)
+            applog.warn('排队 %.1fs —— 服务端忙不过来，请求在干等', waited)
 
         try:
             while True:
@@ -110,7 +170,7 @@ async def chat(req: ChatRequest, up: Upstream = Depends(resolve_upstream)):
                 if kind == '__end__':
                     break
                 if kind == '__error__':
-                    applog.log('✗ 聊天流出错：%s', describe_error(payload))
+                    applog.error('聊天流出错：%s', describe_error(payload))
                     yield _sse('error', {'message': describe_error(payload)})
                     break
                 if kind == '__usage__':

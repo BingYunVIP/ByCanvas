@@ -12,19 +12,21 @@
 
 import { cloneState, equalState, mergeState, StorageConflictError } from './state-merge.js';
 
-const DB_NAME = 'bychat-img';
+const DB_NAME = 'bycanvas';
 const DB_VERSION = 3;
 
 const CONVERSATIONS = 'conversations';
 const IMAGES = 'images';
 const SETTINGS = 'settings';
-const SETTING_BACKUP_PREFIX = 'bychat-img:setting:v3:';
+const SETTING_BACKUP_PREFIX = 'bycanvas:setting:v3:';
 const settingViews = new Map();
 let conversationView = null;
 let deletedExamples = [];
+/** 库里所有会话行的编号（含已删除墓碑）：给演示分配编号时要避开，别把墓碑悄悄覆盖掉。 */
+let reservedIds = [];
 const channel = typeof window !== 'undefined' && typeof BroadcastChannel !== 'undefined'
-  ? new BroadcastChannel('bychat-img:v3') : null;
-if (channel) channel.onmessage = () => window.dispatchEvent(new Event('bychat:storage'));
+  ? new BroadcastChannel('bycanvas:v3') : null;
+if (channel) channel.onmessage = () => window.dispatchEvent(new Event('bycanvas:storage'));
 function notifyChanges() { channel?.postMessage({ changed: true }); }
 
 let dbPromise = null;
@@ -109,7 +111,10 @@ function backupKey(key) {
 function readSettingBackup(key) {
   if (typeof localStorage === 'undefined') return null;
   try {
-    const raw = localStorage.getItem(backupKey(key)) || localStorage.getItem('bychat-img:setting:' + encodeURIComponent(key));
+    // 第二个是 v3 之前的旧前缀（本项目自己早期版本写的），v3 升级后仍能兜住。
+    // 注意：这里**不**读任何 bychat 时代的键 —— 项目已整体更名，旧数据不再兼容。
+    const raw = localStorage.getItem(backupKey(key))
+      || localStorage.getItem('bycanvas:setting:' + encodeURIComponent(key));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return null;
@@ -143,6 +148,7 @@ export function getConversation(id) {
 export function listConversations(remember = true) {
   return run(CONVERSATIONS, 'readonly', (s) => s.getAll()).then((list = []) => {
     deletedExamples = list.filter((row) => row._deleted && row.exampleId != null).map((row) => row.exampleId);
+    reservedIds = list.map((row) => row.id);
     const visible = list.filter((row) => !row._deleted).map((row) => cleanConversation(row));
     if (remember) conversationView = new Map(visible.map((row) => [row.id, cloneState(row)]));
     return visible.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -167,6 +173,28 @@ function imageReferences(rows) {
   return ids;
 }
 export function deletedExampleIds() { return [...deletedExamples]; }
+
+/** 库里所有会话行的编号（含墓碑），用于给演示分配不冲突的编号。 */
+export function storedConversationIds() { return [...reservedIds]; }
+
+/** 演示集换版：清掉旧版留下的演示删除墓碑，避免旧编号把同编号的新演示挡掉。
+    只动「演示」的墓碑，用户自己删掉的对话记录不受影响。 */
+export async function clearExampleTombstones() {
+  const db = await openDB();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(CONVERSATIONS, 'readwrite');
+    const store = tx.objectStore(CONVERSATIONS);
+    const request = store.getAll();
+    request.onsuccess = () => {
+      const rows = request.result || [];
+      for (const row of rows) if (row._deleted && row.exampleId != null) store.delete(row.id);
+      reservedIds = rows.filter((row) => !(row._deleted && row.exampleId != null)).map((row) => row.id);
+    };
+    tx.oncomplete = resolve;
+    tx.onabort = tx.onerror = () => reject(tx.error || request.error);
+  });
+  deletedExamples = [];
+}
 export function hasConversationChanges(rows) {
   if (!conversationView) return false;
   return rows.length !== conversationView.size || rows.some((row) => !equalState(cleanConversation(row), conversationView.get(row.id)));
@@ -370,8 +398,9 @@ export async function imageUrl(id) {
 
 /** 同 api.js：挂到 window 供原型的 app.js（普通脚本）调用 */
 if (typeof window !== 'undefined') {
-  window.ByChatDB = {
-    putConversation, getConversation, listConversations, syncConversations, hasConversationChanges, deletedExampleIds, deleteConversation,
+  window.ByCanvasDB = {
+    putConversation, getConversation, listConversations, syncConversations, hasConversationChanges, deleteConversation,
+    deletedExampleIds, storedConversationIds, clearExampleTombstones,
     listImageIds, deleteImages, putImage, getImage, deleteImage, saveImageBlob, imageUrl,
     getSetting, setSetting, setSettings, deleteSetting, hasSettingChanges, readSnapshot, rememberSnapshot,
   };

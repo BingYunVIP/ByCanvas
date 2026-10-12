@@ -1,4 +1,4 @@
-# ByChat&IMG 后端依赖（与 backend/pyproject.toml 的 dependencies 保持一致，
+# ByCanvas 后端依赖（与 backend/pyproject.toml 的 dependencies 保持一致，
 # 给不方便用 uv sync 的场景 —— 比如已经用 uv venv 建好 .venv 的情况）
 
 fastapi>=0.110

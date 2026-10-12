@@ -1,6 +1,6 @@
 /* UI messages only. Conversation content and editable names keep their original text. */
 (() => {
-  const STORAGE_KEY = 'byimage.language'
+  const STORAGE_KEY = 'bycanvas.language'
   const EN = {
     '此内容已在其他标签页修改，请刷新后重试；当前未保存的修改仍保留在本页。': 'This item changed in another tab. Your unsaved edits remain here; reload before retrying.',
     '无法连接上游服务，请稍后重试。': 'Unable to connect to the provider. Please try again later.',
@@ -28,12 +28,13 @@
     '② 如果只有 Chrome 能开：多半是系统代理拦了 localhost —— ': '2. If only Chrome works, check whether your system proxy blocks localhost. ',
     'Windows 设置 → 网络和 Internet → 代理 → 关掉「使用代理服务器」，': 'In Windows Settings > Network & Internet > Proxy, disable the proxy ',
     '或在「不使用代理服务器的地址」里加 localhost;127.0.0.1': 'or add localhost;127.0.0.1 to its bypass list.',
-    '冰云生图': 'ByImage',
-    '冰云AI': 'ByAI',
-    '冰云小店': 'ByShop',
-    '冰云文档': 'ByDocs',
-    '冰云': 'ByAI',
-    '冰云链接': 'By services',
+    '冰云画布': 'Canvas',
+    '冰云画布 - 支持图片和视频': 'Canvas - Supports Images and Videos',
+    'AI中转站': 'AIRouter',
+    'AI代充': 'AITop-Up',
+    '冰云小店': 'Shop',
+    '售后群': 'SupportGroup',
+    '服务链接': 'Service links',
     '确定': 'Confirm',
     '取消': 'Cancel',
     '没有匹配「{0}」的对话或分组': 'No conversations or groups match "{0}"',
@@ -192,7 +193,7 @@
     '+ 添加配置': '+ Add profile',
     '配置名称': 'Profile name',
     '唯一，用于区分不同配置': 'Must be unique',
-    '例如：冰云默认': 'e.g. ByAI default',
+    '例如：冰云默认': 'e.g. Bingyun Default',
     '仅存本机': 'Local only',
     '显示 API Key 摘要': 'Show masked API Key',
     '密钥仅保存在本机浏览器，发送请求时用于身份验证。': 'Your key is stored in this browser and used to authenticate requests.',
@@ -263,7 +264,7 @@
     '恢复本机数据失败，请检查浏览器的站点存储权限': 'Unable to restore local data. Check site storage permissions.',
     '⚠️ 连不上后端：{0} 没有响应（{1}）\n': 'Backend unavailable: {0} did not respond ({1}).\n',
     '(未指定端口)': '(no port specified)',
-    '当前页面端口是 {0}。确认后端在跑：sudo systemctl status bychat-backend\n': 'Current port: {0}. Check the backend: sudo systemctl status bychat-backend\n',
+    '当前页面端口是 {0}。确认后端在跑：sudo systemctl status bycanvas-backend\n': 'Current port: {0}. Check the backend: sudo systemctl status bycanvas-backend\n',
     '读取图片失败': 'Unable to read image',
     '响应失败': 'Response failed',
     '参考图只支持内联图片，无法发送外部链接。': 'Reference images must be uploaded. External image links are not supported.',
@@ -324,12 +325,24 @@
     '真人涂鸦影子': 'Portrait with a doodle shadow',
     '校园剧风格人物关系图生成器': 'School drama relationship chart',
     '巴黎咖啡馆人像': 'Parisian cafe portrait',
-    '冰云默认': 'ByAI default',
+    '冰云默认': 'Bingyun Default',
     '{0} 秒': '{0} s',
     '不支持的文本接口': 'Unsupported text API',
     '图片需求解析失败，请重试': 'Unable to interpret the image request. Please try again.',
     '文本模型返回的图片工具参数无法读取': 'Unable to read the image tool arguments',
     '文本模型返回的提示词或参考图编号无效': 'Invalid prompt or reference image number returned by the text model',
+    '清晰度': 'Resolution',
+    '时长': 'Duration',
+    '点击设置视频时长': 'Set video duration',
+    '时长：不适用': 'Video duration unavailable',
+    '正在生成视频': 'Creating your video',
+    '视频完成后会显示在这里，你可以继续浏览对话。': 'Your video will appear here when ready.',
+    '已提交视频任务': 'Video task submitted',
+    '下载视频': 'Download video',
+    '接口没有返回视频': 'The API returned no video',
+    '视频已生成': 'Video generated',
+    '该对话没有可下载的视频': 'No videos to download in this conversation',
+    '视频还在读取中，请稍后再试': 'Video is loading. Please try again shortly.',
   }
 
   let language = 'zh-CN'
@@ -373,7 +386,7 @@
       root.querySelectorAll(`[data-i18n-${attr}]`).forEach((el) => el.setAttribute(attr, tr(el.getAttribute(`data-i18n-${attr}`))))
     }
     document.documentElement.lang = language
-    document.title = tr('冰云生图')
+    document.title = tr('冰云画布 - 支持图片和视频')
     const button = document.getElementById('languageToggleBtn')
     if (button) {
       const label = language === 'en' ? '切换到中文' : 'Switch to English'
@@ -391,14 +404,14 @@
     if (language === value) return true
     language = value
     apply()
-    window.dispatchEvent(new CustomEvent('byimage:languagechange', { detail: { language } }))
+    window.dispatchEvent(new CustomEvent('bycanvas:languagechange', { detail: { language } }))
     return true
   }
 
-  window.ByImageI18n = { tr, message, apply, setLanguage, get language() { return language }, keys: Object.keys(EN) }
+  window.ByCanvasI18n = { tr, message, apply, setLanguage, get language() { return language }, keys: Object.keys(EN) }
   window.tr = tr
   document.documentElement.lang = language
-  document.title = tr('冰云生图')
+  document.title = tr('冰云画布 - 支持图片和视频')
   document.addEventListener('DOMContentLoaded', () => apply())
   window.addEventListener('storage', (event) => {
     if (event.key === STORAGE_KEY || event.key === null) setLanguage(event.newValue === 'en' ? 'en' : 'zh-CN', false)

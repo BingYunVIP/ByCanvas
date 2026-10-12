@@ -161,7 +161,7 @@ async def _auto(
         exc = task.exception()
         if exc is not None:
             errors[name] = exc
-            applog.log('[auto] /%s 失败：%s: %s', name, type(exc).__name__, exc)
+            applog.warn('[auto] /%s 失败：%s: %s', name, type(exc).__name__, exc)
         elif winner['name'] != name:
             errors[name] = RuntimeError('聊天接口没有返回任何内容。')
 

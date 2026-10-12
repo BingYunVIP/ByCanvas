@@ -62,6 +62,25 @@ def image_parameters(item: dict, fallback: dict, parameters) -> dict:
     return result
 
 
+def _string_list(raw) -> list[str]:
+    """视频参数里含 ':'（比如 16:9），不能套用模型档位那套字符白名单，这里原样收下。"""
+    if not isinstance(raw, list):
+        return []
+    return [value for value in raw if isinstance(value, str) and value.strip()]
+
+
+def video_parameters(fallback: dict) -> dict:
+    """视频参数的兜底候选。目录里给了就以目录为准，没给就用上游 xAI 的公开规格。"""
+    spec = fallback.get('videoParameters') if isinstance(fallback.get('videoParameters'), dict) else {}
+    defaults = {
+        # 官方规格：duration 1-15 秒的整数，不传时上游默认 8 秒
+        'duration': [str(seconds) for seconds in range(1, 16)],
+        'resolution': ['480p', '720p', '1080p'],
+        'aspectRatio': ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '21:9', '5:2'],
+    }
+    return {name: _string_list(spec.get(name)) or defaults[name] for name in defaults}
+
+
 def model_capabilities(item: dict) -> dict:
     model_id = str(item.get('id', '')).removeprefix('openai/')
     fallback = CATALOG.get(ALIASES.get(model_id, model_id), {})
@@ -81,7 +100,10 @@ def model_capabilities(item: dict) -> dict:
     vision = item.get('vision')
     if vision is None:
         vision = fallback.get('vision')
-    return {
+    # 模型种类：上游/前端给的 kind 优先，其次是目录（openrouter.ai 同步来的快照）。
+    # 两处都没有就返回 None，由调用方按 id 猜。
+    kind = item.get('kind') or fallback.get('kind') or None
+    result = {
         'vision': None if vision is None else bool(vision),
         'reasoning': not disabled and bool(efforts or item.get('reasoning') or item.get('supportsReasoningEffort')
                                          or isinstance(parameters, list) and any(p in parameters for p in ('reasoning', 'reasoning_effort'))),
@@ -95,3 +117,8 @@ def model_capabilities(item: dict) -> dict:
         'defaultQuality': None,
         'imageParameters': image_parameters(item, fallback, parameters),
     }
+    if isinstance(kind, str) and kind:
+        result['kind'] = kind
+        if kind == 'video':
+            result['videoParameters'] = video_parameters(fallback)
+    return result

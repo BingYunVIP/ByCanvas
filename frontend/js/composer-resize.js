@@ -12,6 +12,7 @@ export function createComposerResizer({ composer, area, handle, toolbar }) {
   const win = doc.defaultView
   const main = area.parentElement
   const inputWrap = composer.querySelector('.composer-input-wrap')
+  const input = composer.querySelector('.composer-input')
   let desiredHeight = null, drag = null
 
   function bounds() {
@@ -27,11 +28,38 @@ export function createComposerResizer({ composer, area, handle, toolbar }) {
     // 手动拉高时去掉上方间距，输入栏的顶边可正好到达标题栏底边。
     const topGap = desiredHeight == null ? Number.parseFloat(win.getComputedStyle(area).paddingTop) || 0 : 0
     composer.style.maxHeight = `${Math.max(0, limits.max - topGap)}px`
-    if (desiredHeight != null) composer.style.height = `${clampComposerHeight(desiredHeight, limits)}px`
+    if (desiredHeight != null && !String(input.value ?? input.textContent ?? '').trim() && !drag) reset(false)
+    if (desiredHeight != null) {
+      composer.style.height = `${clampComposerHeight(desiredHeight, limits)}px`
+      input.style.height = ''
+      input.style.maxHeight = ''
+    } else {
+      composer.style.height = ''
+      input.style.height = 'auto'
+      const chromeHeight = composer.getBoundingClientRect().height - inputWrap.getBoundingClientRect().height
+      const cap = Math.max(44, Math.min(420, win.innerHeight * .42, limits.max - topGap - chromeHeight))
+      input.style.maxHeight = `${cap}px`
+      input.style.height = `${Math.min(cap, Math.max(44, input.scrollHeight))}px`
+    }
     handle.setAttribute('aria-valuemin', String(limits.min))
     handle.setAttribute('aria-valuemax', String(limits.max))
     handle.setAttribute('aria-valuenow', String(Math.round(composer.getBoundingClientRect().height)))
   }
+  function reset(update = true) {
+    desiredHeight = null
+    area.classList.remove('is-resized')
+    composer.style.height = ''
+    if (update) sync()
+  }
+  let frame = null
+  function scheduleSync() {
+    if (frame != null) return
+    frame = win.requestAnimationFrame(() => { frame = null; sync() })
+  }
+  input.addEventListener('input', scheduleSync)
+  handle.addEventListener('dblclick', () => reset())
+  // 程序设置 value、复用提示词及恢复草稿同样会触发自适应。
+  if (win.MutationObserver) new win.MutationObserver(scheduleSync).observe(input, { childList: true, subtree: true, characterData: true })
   function setHeight(height) {
     desiredHeight = clampComposerHeight(height, bounds())
     area.classList.add('is-resized')
@@ -69,13 +97,13 @@ export function createComposerResizer({ composer, area, handle, toolbar }) {
   win.addEventListener('resize', sync)
   win.visualViewport?.addEventListener('resize', sync)
   if (win.ResizeObserver) {
-    const observer = new win.ResizeObserver(sync)
+    const observer = new win.ResizeObserver(scheduleSync)
     for (const node of [main, toolbar, composer.querySelector('.composer-divider'), composer.querySelector('.composer-images')]) {
       if (node) observer.observe(node)
     }
   }
   sync()
-  return { sync }
+  return { sync, reset }
 }
 
-if (typeof window !== 'undefined') window.ByChatResize = { createComposerResizer }
+if (typeof window !== 'undefined') window.ByCanvasResize = { createComposerResizer }

@@ -8,6 +8,28 @@ export function optionValues(raw) {
 
 function firstDefined(...values) { return values.find((v) => v !== undefined && v !== null); }
 
+/**
+ * 视频参数的兜底候选。目录（openrouter.ai 同步来的快照）里给了就以目录为准，
+ * 没给就用这份内置值——它来自上游 xAI 视频接口的公开规格：
+ * 时长 1-15 秒、清晰度 480p/720p/1080p、画面比例 1:1 ~ 5:2。
+ */
+const DEFAULT_VIDEO_PARAMETERS = {
+  // 官方规格：duration 1-15 秒的整数，不传时上游默认 8 秒
+  duration: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'],
+  resolution: ['480p', '720p', '1080p'],
+  aspectRatio: ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '21:9', '5:2'],
+};
+
+function videoParameters(fallback) {
+  const spec = fallback.videoParameters || {};
+  // 视频参数里含 ':'（比如 16:9），不能套用模型档位那套字符白名单，这里原样收下。
+  const pick = (name) => {
+    const raw = Array.isArray(spec[name]) ? spec[name].filter((v) => typeof v === 'string' && v.trim()) : [];
+    return raw.length ? raw : DEFAULT_VIDEO_PARAMETERS[name];
+  };
+  return { duration: pick('duration'), resolution: pick('resolution'), aspectRatio: pick('aspectRatio') };
+}
+
 /** 只保存输入栏使用的图像参数；false 表示未声明支持，不能靠模型名称猜测。 */
 function imageParameters(item, fallback, parameters) {
   const schema = parameters?.properties || parameters || {};
@@ -43,7 +65,7 @@ export function modelCapabilities(item, catalog = {}) {
   // 上游（中转站）自己不声明，所以基本都走目录；目录里也是 null 就标未知，
   // 不能顺手判成「不支持」——那会把能看图的模型的上传按钮给禁掉。
   const vision = item.vision == null ? (fallback.vision ?? null) : !!item.vision;
-  return {
+  const result = {
     vision,
     reasoning: !disabled && (reasoningEfforts.length > 0 || item.reasoning === true || item.supportsReasoningEffort === true
       || (Array.isArray(parameters) && parameters.some((p) => p === 'reasoning' || p === 'reasoning_effort'))),
@@ -57,6 +79,18 @@ export function modelCapabilities(item, catalog = {}) {
     defaultQuality: null,
     imageParameters: imageParameters(item, fallback, parameters),
   };
+  // 模型种类：中转通道会由后端在响应里直接给出 kind；直连通道只能靠目录
+  // （openrouter.ai 同步来的快照）。两处都没有就返回 null，由调用方按 id 猜。
+  // 这样上游新增图像 / 视频模型时，前端不用改代码就能走对接口。
+  const kind = typeof item.kind === 'string' ? item.kind
+    : typeof fallback.kind === 'string' ? fallback.kind : null;
+  // 只在确实知道是视频模型时才带上视频参数，其余模型保持和改动前完全一样的
+  // 形状（前端单测按精确形状断言，多一个字段就会挂）。
+  if (kind) {
+    result.kind = kind;
+    if (kind === 'video') result.videoParameters = videoParameters(fallback);
+  }
+  return result;
 }
 
 let catalogPromise;

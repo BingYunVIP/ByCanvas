@@ -119,4 +119,4 @@ export function renderMarkdown(value, { renderArgument } = {}) {
   return out.join('')
 }
 
-if (typeof window !== 'undefined') window.ByChatFormat = { renderMarkdown }
+if (typeof window !== 'undefined') window.ByCanvasFormat = { renderMarkdown }

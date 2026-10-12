@@ -1,4 +1,4 @@
-"""ByChat&IMG 后端：只做透传代理，不持有任何用户数据。"""
+"""ByCanvas 后端：只做透传代理，不持有任何用户数据。"""
 
 from .log import configure_logging
 

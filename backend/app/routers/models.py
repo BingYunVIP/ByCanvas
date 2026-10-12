@@ -18,12 +18,25 @@ from ..upstream import bearer_headers, describe_error, extract_upstream_error, h
 
 router = APIRouter(prefix='/api', tags=['models'])
 
-# 用于区分聊天模型和生图模型，前端据此决定走哪个接口
-_IMAGE_HINTS = ('image', 'dall', 'flux', 'midjourney', 'imagen', 'seedream')
+# 用于区分聊天 / 生图 / 视频模型，前端据此决定走哪个接口
+# nano-banana 是 Gemini 图像模型的产品代号，id 里不含 image/video，必须显式列出。
+_IMAGE_HINTS = ('image', 'dall', 'flux', 'midjourney', 'imagen', 'seedream', 'nano-banana')
+_VIDEO_HINTS = ('video', 'sora', 'veo', 'kling', 'runway')
+
+# 不向用户展示的模型 id（小写）。内部审核模型 + 产品侧要求隐藏的三个。
+HIDDEN_MODEL_IDS = frozenset({
+    'codex-auto-review',
+    'gpt-image-medium',
+    'gpt-reserve',
+    'grok-4.7-build-fast',
+})
 
 
 def guess_kind(model_id: str) -> str:
+    """视频先判：grok-imagine-video 之类同时含 image/video 的 id，要落到 video 上。"""
     lower = model_id.lower()
+    if any(hint in lower for hint in _VIDEO_HINTS):
+        return 'video'
     return 'image' if any(hint in lower for hint in _IMAGE_HINTS) else 'chat'
 
 
@@ -35,7 +48,7 @@ async def list_models(up: Upstream = Depends(resolve_upstream)):
         waited, running, applog.thread_count(),
     )
     if waited > 1:
-        applog.log('⚠️ 排队 %.1fs —— 服务端忙不过来，请求在干等', waited)
+        applog.warn('排队 %.1fs —— 服务端忙不过来，请求在干等', waited)
 
     try:
         try:
@@ -45,14 +58,14 @@ async def list_models(up: Upstream = Depends(resolve_upstream)):
                 resp = await client.get(url, headers=bearer_headers(up.api_key))
                 applog.log('上游返回 HTTP %d，耗时 %.1fs', resp.status_code, time.time() - t0)
         except httpx.HTTPError as exc:
-            applog.log('✗ 拉模型列表出错：%s —— %s', type(exc).__name__, describe_error(exc))
+            applog.error('拉模型列表出错：%s —— %s', type(exc).__name__, describe_error(exc))
             raise HTTPException(status_code=502, detail=describe_error(exc)) from exc
     finally:
         applog.route_exit()
 
     if resp.status_code != 200:
         detail = extract_upstream_error(resp)
-        applog.log('✗ 拉模型列表失败：%s', detail)
+        applog.error('拉模型列表失败：%s', detail)
         raise HTTPException(status_code=502, detail=detail)
 
     payload = resp.json()
@@ -88,12 +101,18 @@ async def list_models(up: Upstream = Depends(resolve_upstream)):
     models: list[ModelInfo] = []
     for item in raw_models or []:
         model_id = item.get('id') if isinstance(item, dict) else None
-        if not isinstance(model_id, str) or not model_id.strip() or model_id.strip().lower() == 'codex-auto-review':
+        if not isinstance(model_id, str) or not model_id.strip():
             continue
+        if model_id.strip().lower() in HIDDEN_MODEL_IDS:
+            continue
+        caps = model_capabilities(item)
+        # 目录（openrouter.ai 同步来的快照）里标了种类就以它为准，否则按 id 猜。
+        # 这样上游新增图像 / 视频模型时，后端不用改代码就能报对 kind。
+        kind = caps.pop('kind', None) or guess_kind(model_id)
         models.append(ModelInfo(
             id=model_id,
             name=item.get('display_name') or item.get('name') or model_id,
-            kind=guess_kind(model_id),
-            **model_capabilities(item),
+            kind=kind,
+            **caps,
         ))
     return models

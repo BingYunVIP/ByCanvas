@@ -63,7 +63,7 @@ export function normalizeBaseUrl(raw) {
  * 直连探测与缓存
  * ------------------------------------------------------------------------- */
 
-const CORS_CACHE_KEY = 'bychat.cors';
+const CORS_CACHE_KEY = 'bycanvas.cors';
 let transportOverride = '';   // 'direct' | 'proxy' | ''
 
 export function setTransportOverride(value) {
@@ -104,24 +104,48 @@ function isCorsFailure(err) {
  * 归一化：把上游的原生响应整成和中转通道一样的形状
  * ------------------------------------------------------------------------- */
 
-const IMAGE_HINTS = ['image', 'dall', 'flux', 'midjourney', 'imagen', 'seedream'];
+// nano-banana 是 Gemini 图像模型的产品代号，id 里不含 image/video，必须显式列出。
+const IMAGE_HINTS = ['image', 'dall', 'flux', 'midjourney', 'imagen', 'seedream', 'nano-banana'];
+const VIDEO_HINTS = ['video', 'sora', 'veo', 'kling', 'runway'];
+
+/**
+ * 不向用户展示的模型 id（小写）。内部审核模型 + 产品侧明确要求隐藏的三个。
+ * 直连与中转两条通道共用同一份名单，避免两边展示不一致。
+ */
+export const HIDDEN_MODEL_IDS = [
+  'codex-auto-review',
+  'gpt-image-medium',
+  'gpt-reserve',
+  'grok-4.7-build-fast',
+];
+
+export function isHiddenModel(modelId) {
+  return HIDDEN_MODEL_IDS.includes(String(modelId || '').trim().toLowerCase());
+}
 
 /** 与后端 guess_kind 保持一致：靠模型名判断是聊天还是出图。 */
 export function guessKind(modelId) {
   const id = String(modelId || '').toLowerCase();
+  // 视频先判：grok-imagine-video 这类 id 同时含 image/video，必须落到 video 上。
+  if (VIDEO_HINTS.some((h) => id.includes(h))) return 'video';
   return IMAGE_HINTS.some((h) => id.includes(h)) ? 'image' : 'chat';
 }
 
 export function normalizeModels(payload, catalog = {}) {
   const raw = Array.isArray(payload) ? payload : ((payload && payload.data) || []);
   return raw
-    .filter((it) => it && typeof it.id === 'string' && it.id.trim() && it.id.trim().toLowerCase() !== 'codex-auto-review')
-    .map((it) => ({
-      id: it.id,
-      name: it.display_name || it.name || it.id,
-      kind: guessKind(it.id),
-      ...modelCapabilities(it, catalog),
-    }));
+    .filter((it) => it && typeof it.id === 'string' && it.id.trim() && !isHiddenModel(it.id))
+    .map((it) => {
+      const cap = modelCapabilities(it, catalog);
+      return {
+        id: it.id,
+        name: it.display_name || it.name || it.id,
+        ...cap,
+        // 目录（openrouter.ai 同步来的快照）里明确标了 kind 就以它为准，否则按 id 猜。
+        // 新模型在上游出现时，只要目录里有它，前端不用改代码就能走对接口。
+        kind: cap.kind || guessKind(it.id),
+      };
+    });
 }
 
 export async function withModelCapabilities(models) {
@@ -560,8 +584,19 @@ export async function* streamChat(profile, payload, signal) {
  * ------------------------------------------------------------------------- */
 
 /** 图片辅助模型由后端固定选择，不复用聊天界面的模型、推理或协议偏好。 */
+/**
+ * 辅助文本模型本身不可用（上游没这个模型 / 模型列表里挑不出可用的文本模型）。
+ *
+ * 这类失败与用户选中的图像模型无关，也不该让整张图生不出来——2026-10-12 的真实
+ * 故障是后端把辅助模型写死成上游没有的 gpt-5.6-sol，上游回
+ *   {"message":"Model \"gpt-5.6-sol\" is not supported by any configured account..."}
+ * 结果**所有**图像模型都报「该模型当前不可用」。
+ */
+const PLAN_MODEL_UNAVAILABLE = /not supported|does not exist|model_not_found|没有可用于解析图片需求的文本模型/i
+
 export async function planImage(profile, payload, signal) {
   const modes = ['responses', 'chat_completions'];
+  let lastError = null;
   for (let i = 0; i < modes.length; i++) {
     const mode = modes[i];
     const body = imagePlanBody(payload, mode);
@@ -571,13 +606,32 @@ export async function planImage(profile, payload, signal) {
     });
     if (!resp.ok) {
       const error = new ApiError(await readError(resp), resp.status);
+      // 标记来源：这一步说的是「辅助文本模型」的事，不是用户选中的那个模型，
+      // 上层不能把它翻成「该模型当前不可用」（见 app.js 的错误归类）。
+      error.stage = 'image-plan';
+      lastError = error;
       if (i + 1 < modes.length && [400, 404, 405, 415, 422, 501].includes(resp.status)) continue;
-      throw error;
+      break;
     }
     const data = await resp.json();
-    const plan = readImagePlan(data, mode, payload.images?.length || 0);
-    return { ...plan, usage: summarizeUsage(mode, data.usage) };
+    try {
+      const plan = readImagePlan(data, mode, payload.images?.length || 0);
+      return { ...plan, usage: summarizeUsage(mode, data.usage) };
+    } catch (err) {
+      lastError = err;
+      break;
+    }
   }
+  // 「解析图片需求」只是锦上添花的一步。辅助模型不可用时退回用户原始描述、参考图按
+  // 顺序全带上，让生图这一步自己去报真正的问题；比整张图生不出来好得多。
+  if (!lastError || !PLAN_MODEL_UNAVAILABLE.test(String(lastError.message || ''))) throw lastError;
+  console.warn('[image-plan] 辅助文本模型不可用，改用原始描述直接生图：', lastError.message);
+  return {
+    prompt: payload.prompt,
+    reference_images: (payload.images || []).map((_, i) => i + 1),
+    usage: null,
+    planFailed: true,
+  };
 }
 
 /** 上游可能返回 b64_json，也可能返回一个要再下载一次的 url，两种都处理。 */
@@ -711,6 +765,46 @@ export async function editImage(profile, params, files, signal) {
 }
 
 /* ---------------------------------------------------------------------------
+ * 视频生成
+ * ------------------------------------------------------------------------- */
+
+/** 视频以 base64 返回，这里转成 Blob；和图片一样不依赖服务器上的文件路径。 */
+function toVideos(list) {
+  return (list || []).map((item) => {
+    const mime = item.mime || 'video/mp4';
+    const blob = b64ToBlob(item.b64, mime);
+    return { blob, mime, url: URL.createObjectURL(blob) };
+  });
+}
+
+/** 只发上游认识的字段；'auto' 一律不传，交给上游自己决定。 */
+function videoBody(params) {
+  const body = { model: params.model, prompt: params.prompt };
+  if (params.duration) body.duration = Number(params.duration);
+  if (params.resolution && params.resolution !== 'auto') body.resolution = params.resolution;
+  if (params.aspect_ratio && params.aspect_ratio !== 'auto') body.aspect_ratio = params.aspect_ratio;
+  if (params.image) body.image = params.image;   // 图生视频的首帧（data: 内联图片）
+  return body;
+}
+
+/**
+ * 视频生成。上游是**异步**任务（提交 → 轮询 → 下载内容），统一走后端中转：
+ * 浏览器侧要实现三段状态机 + 带鉴权下载内容，收敛在后端只有一处实现，
+ * Key 也不会被拼进轮询地址。图片仍保留「能直连就直连」的两条通道。
+ */
+export async function generateVideo(profile, params, signal) {
+  const resp = await fetch('/api/videos/generate', {
+    method: 'POST',
+    headers: buildHeaders(profile, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(videoBody(params)),
+    signal,
+  });
+  if (!resp.ok) throw new ApiError(await readError(resp), resp.status);
+  const payload = await resp.json();
+  return { videos: toVideos(payload.videos), usage: payload.usage, errors: payload.errors || [] };
+}
+
+/* ---------------------------------------------------------------------------
  * 上游体检（只有走中转通道时才有意义）
  * ------------------------------------------------------------------------- */
 
@@ -738,11 +832,11 @@ export async function diagUpstream(profile, model = '', probe = 'chat', signal) 
 
 /**
  * 原型的 app.js 是普通脚本、用 onclick="fn()" 内联调用，拿不到模块作用域。
- * 这里把接口挂到 window，让 app.js 能直接用 ByChatAPI.xxx。
+ * 这里把接口挂到 window，让 app.js 能直接用 ByCanvasAPI.xxx。
  */
 if (typeof window !== 'undefined') {
-  window.ByChatAPI = {
-    healthz, fetchModels, streamChat, planImage, combineImageUsage, generateImage, editImage, b64ToBlob,
+  window.ByCanvasAPI = {
+    healthz, fetchModels, streamChat, planImage, combineImageUsage, generateImage, editImage, generateVideo, b64ToBlob,
     diagUpstream, encodeBase64Url, parseSSEChunk, ApiError, DEFAULT_UPSTREAM,
     normalizeBaseUrl, normalizeModels, withModelCapabilities, guessKind, summarizeUsage,
     maskKey, setTransportOverride, transportName,

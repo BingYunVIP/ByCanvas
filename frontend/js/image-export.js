@@ -49,4 +49,4 @@ export async function convertImage(blob, format) {
   } finally { img.close?.(); }
 }
 
-if (typeof window !== 'undefined') window.ByChatImageExport = { convertImage };
+if (typeof window !== 'undefined') window.ByCanvasImageExport = { convertImage };

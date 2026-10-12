@@ -1,5 +1,5 @@
 # ============================================================
-# ByChat_IMG repository exclusions
+# ByCanvas repository exclusions
 # ============================================================
 
 # Hidden local/tool state directories (.deploy, .venv, .pytest_cache,
@@ -109,12 +109,21 @@ secrets.*
 Thumbs.db
 Desktop.ini
 
-# Internal/local documentation. The public repository uses README.md.
+# Internal/local documentation. The public repository uses README.md only.
 CODEX_ANALYSIS.md
 PLAN.md
 CODE_REVIEW.md
 DEPLOY.md
 OVERVIEW.md
+
+# Local verification artifacts (screenshots, archived demo assets).
+.artifacts/
+
+# Test suites are kept in the working copy for local verification but are not
+# published. Deployment is validated by hand against a real machine.
+backend/tests/
+frontend/tests/
+tools/tests/
 
 # Keep the public tools directory focused. Local probes and browser automation
 # remain available in the working copy but are not published.
@@ -124,6 +133,4 @@ tools/*
 !tools/install_service.sh
 !tools/diag.sh
 !tools/sync_model_capabilities.py
-!tools/tests/
-tools/tests/*
-!tools/tests/test_deploy.py
+!tools/check_models.py

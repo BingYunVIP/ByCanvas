@@ -309,4 +309,4 @@ export function createMarkdownEditor(element, { shouldSubmit = () => false, onSu
   return { draft, readSelection, restoreSelection, insertText: (text) => change(...selectedRange(), text) }
 }
 
-if (typeof window !== 'undefined') window.ByChatComposer = { createMarkdownEditor }
+if (typeof window !== 'undefined') window.ByCanvasComposer = { createMarkdownEditor }

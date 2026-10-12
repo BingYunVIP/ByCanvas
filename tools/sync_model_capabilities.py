@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """从 OpenRouter 拉取模型能力，生成 frontend/data/model-capabilities.json。
 
-数据源只有两个，各管一段，不要混：
+数据源有三个，各管一段，不要混：
 
   ① OpenRouter /api/v1/models（权威，本脚本联网拉取）
        - 推理档位   ← reasoning.supported_efforts
        - 多模态     ← architecture.input_modalities 是否含 image
+       - 模型种类   ← architecture.output_modalities（含 image → 图像模型，含 video → 视频模型）
 
   ② 官方公开档位（写死在下面的 OFFICIAL_IMAGE 里）
        - 生图质量档位 ← OpenAI 官方文档列出的 quality 枚举
@@ -123,16 +124,70 @@ OFFICIAL_IMAGE = {
     },
 }
 
-# 带日期后缀的快照 ID 指向同一个模型，查表时先归一到主 ID。
+# ---------------------------------------------------------------------------
+# ③ 视频模型：OpenRouter 目前**没有**任何输出视频的模型（实测全站 458 个模型的
+#    output_modalities 里都没有 video），所以视频能力只能按上游 xAI 的公开规格写死。
+#    来源：https://docs.x.ai/developers/model-capabilities/video/overview
+#      - 时长 1-15 秒（整数；不传时上游默认 8 秒）
+#      - 清晰度 480p / 720p / 1080p（grok-imagine-video 只到 720p）
+#      - 画面比例 1:1 / 16:9 / 9:16 / 4:3 / 3:4 / 3:2 / 2:3 / 21:9 / 5:2
+#    上游新增视频模型时：往这里加一条；等 OpenRouter 收录视频模型后，① 会自动接管。
+# ---------------------------------------------------------------------------
+VIDEO_SOURCE = 'https://docs.x.ai/developers/model-capabilities/video/overview'
+VIDEO_ASPECT_RATIOS = ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '21:9', '5:2']
+# 官方规格：`duration` 取 1-15 秒的整数，不传时上游默认 8 秒。
+# 来源：https://docs.x.ai/developers/model-capabilities/video/generation#duration
+VIDEO_DURATIONS = [str(seconds) for seconds in range(1, 16)]
+OFFICIAL_VIDEO = {
+    'grok-imagine-video-1.5': {
+        'kind': 'video',
+        'videoParameters': {
+            'duration': VIDEO_DURATIONS,
+            'resolution': ['480p', '720p', '1080p'],
+            'aspectRatio': VIDEO_ASPECT_RATIOS,
+        },
+        'source': VIDEO_SOURCE,
+    },
+    'grok-imagine-video-1.5-lite': {
+        'kind': 'video',
+        'videoParameters': {
+            'duration': VIDEO_DURATIONS,
+            'resolution': ['480p', '720p', '1080p'],
+            'aspectRatio': VIDEO_ASPECT_RATIOS,
+        },
+        'source': VIDEO_SOURCE,
+    },
+    'grok-imagine-video': {
+        'kind': 'video',
+        'videoParameters': {
+            'duration': VIDEO_DURATIONS,
+            'resolution': ['480p', '720p'],
+            'aspectRatio': VIDEO_ASPECT_RATIOS,
+        },
+        'source': VIDEO_SOURCE,
+    },
+}
+
+# 带日期后缀的快照 ID / 预览版指向同一个模型，查表时先归一到主 ID。
 OFFICIAL_ALIASES = {
     'gpt-image-2-2026-04-21': 'gpt-image-2',
     'gpt-image-2.5-sunburst-2026-09-08': 'gpt-image-2.5-sunburst',
     'gpt-image-2.5-flare-2026-09-08': 'gpt-image-2.5-flare',
+    'grok-imagine-video-1.5-preview': 'grok-imagine-video-1.5',
+    # 中转站（api.bingyun.vip）报的是裸名 gemini-*，OpenRouter 目录里带 google/ 前缀，
+    # 两边对不上会导致 kind / vision 兜底失效（nano-banana 还会被误判成聊天模型）。
+    'gemini-2.5-flash-image': 'google/gemini-2.5-flash-image',
+    'gemini-3-pro-image': 'google/gemini-3-pro-image',
+    'gemini-3-pro-image-preview': 'google/gemini-3-pro-image-preview',
+    'gemini-3.1-flash-image': 'google/gemini-3.1-flash-image',
+    'gemini-3.1-flash-image-preview': 'google/gemini-3.1-flash-image-preview',
+    'gemini-3.1-flash-lite-image': 'google/gemini-3.1-flash-lite-image',
+    'gemini-nano-banana-2.1': 'google/gemini-nano-banana-2.1',
 }
 
 
 def fetch(url: str) -> dict:
-    req = urllib.request.Request(url, headers={'User-Agent': 'bychat-img-capability-sync/1.0'})
+    req = urllib.request.Request(url, headers={'User-Agent': 'bycanvas-capability-sync/1.0'})
     with urllib.request.urlopen(req, timeout=60) as resp:  # noqa: S310 - 固定 https 地址
         return json.loads(resp.read().decode('utf-8'))
 
@@ -151,7 +206,9 @@ def normalize_efforts(raw) -> list[str]:
 
 def from_openrouter(entry: dict) -> dict:
     reasoning = entry.get('reasoning') or {}
-    modalities = (entry.get('architecture') or {}).get('input_modalities') or []
+    architecture = entry.get('architecture') or {}
+    modalities = architecture.get('input_modalities') or []
+    outputs = architecture.get('output_modalities') or []
     supported = entry.get('supported_parameters') or []
     efforts = normalize_efforts(reasoning.get('supported_efforts') if isinstance(reasoning, dict) else None)
     out = {
@@ -159,6 +216,9 @@ def from_openrouter(entry: dict) -> dict:
         # 多模态：OpenRouter 的 input_modalities 是权威判据。
         # 只有它明确列出支持哪些输入时才能判「不支持」；字段缺失就是未知（null）。
         'vision': True if 'image' in modalities else (False if modalities else None),
+        # 模型种类：输出模态里带 image / video 的就不是普通聊天模型。上游（中转站）
+        # 自己不声明，靠这份目录让前后端自动走对接口（/images/* 还是 /videos/*）。
+        'kind': 'video' if 'video' in outputs else 'image' if 'image' in outputs else 'chat',
         'source': 'https://openrouter.ai/api/v1/models',
     }
     # reasoning 参数被支持但没给档位枚举时（比如 gpt-5-image 只有 mandatory: true），
@@ -197,17 +257,22 @@ def main() -> int:
         if wanted:
             if oid not in wanted and openrouter_key(oid) not in wanted:
                 continue
-        elif not args.all and not oid.startswith('openai/'):
-            continue
+        elif not args.all:
+            # 默认范围：openai/* 全部 + 任何输出图像 / 视频的模型（不限厂商）。
+            # 这样上游新上图像 / 视频模型时，目录里自然就有它的种类和参数。
+            outputs = (entry.get('architecture') or {}).get('output_modalities') or []
+            if not oid.startswith('openai/') and not ({'image', 'video'} & set(outputs)):
+                continue
         models[openrouter_key(oid)] = from_openrouter(entry)
 
-    # 生图模型（OpenRouter 没有）由官方固定档位补齐，不覆盖已有项
-    for key, spec in OFFICIAL_IMAGE.items():
+    # 生图 / 视频模型（OpenRouter 目录里没有）由官方固定档位补齐，不覆盖已有项
+    for key, spec in {**OFFICIAL_IMAGE, **OFFICIAL_VIDEO}.items():
         merged = dict(models.get(key, {}))
         merged.update(spec)
         # 官方表里的模型：OpenRouter 查不到时 vision 标未知，别误判成不支持
         merged.setdefault('vision', None)
         merged.setdefault('reasoningEfforts', [])
+        merged.setdefault('kind', 'video' if key in OFFICIAL_VIDEO else 'image')
         models[key] = merged
 
     if wanted:
@@ -220,7 +285,9 @@ def main() -> int:
         'sources': {
             'reasoningEfforts': 'OpenRouter /api/v1/models → reasoning.supported_efforts',
             'vision': 'OpenRouter /api/v1/models → architecture.input_modalities',
+            'kind': 'OpenRouter /api/v1/models → architecture.output_modalities',
             'qualityOptions': '官方公开档位（OpenRouter 不提供图片参数，见 tools/sync_model_capabilities.py）',
+            'videoParameters': 'xAI 视频接口公开规格（OpenRouter 尚无视频模型，见 tools/sync_model_capabilities.py）',
         },
         'models': dict(sorted(models.items())),
         'aliases': dict(sorted(OFFICIAL_ALIASES.items())),
@@ -234,8 +301,10 @@ def main() -> int:
     OUT.write_text(text, encoding='utf-8')
     chat = [k for k, v in models.items() if v.get('reasoningEfforts')]
     vision = [k for k, v in models.items() if v.get('vision')]
+    kinds = {kind: sum(1 for v in models.values() if v.get('kind') == kind) for kind in ('chat', 'image', 'video')}
     print(f'✓ 写出 {OUT.relative_to(Path.cwd())}')
     print(f'  模型 {len(models)} 个｜有推理档位 {len(chat)} 个｜支持图像输入 {len(vision)} 个')
+    print(f'  种类：chat {kinds["chat"]}｜image {kinds["image"]}｜video {kinds["video"]}')
     for key in ('gpt-5.6-terra', 'gpt-6-astra', 'gpt-image-2.5-sunburst'):
         if key in models:
             v = models[key]

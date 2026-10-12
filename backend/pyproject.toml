@@ -1,7 +1,7 @@
 [project]
-name = "bychat-img"
+name = "bycanvas"
 version = "0.3.0"
-description = "ByChat&IMG —— 聊天与生图/改图的透传代理后端"
+description = "ByCanvas —— 聊天与生图/改图的透传代理后端"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.110",

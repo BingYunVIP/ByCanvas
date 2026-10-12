@@ -3,10 +3,10 @@
 为什么要这个文件：
 
   uvicorn --host 0.0.0.0  → 只听 IPv4。浏览器把 localhost 解析成 ::1 时连不上，
-                            Chrome 会回退到 IPv4 所以没事，Firefox / Edge 有些
-                            配置下直接失败（Failed to fetch）。
+                           Chrome 会回退到 IPv4 所以没事，Firefox / Edge 有些
+                           配置下直接失败（Failed to fetch）。
   uvicorn --host ::       → 本以为是双栈，实测在 WSL 上拿到的是 IPv6-only socket，
-                            结果反过来：::1 通了，127.0.0.1 连不上。
+                           结果反过来：::1 通了，127.0.0.1 连不上。
 
 两条路都会在「某些浏览器能开、某些不能」上翻车。所以这里自己建 socket，
 按下面三级降级，尽可能保证两个协议族都有人接：
@@ -22,6 +22,12 @@
     只允许本机访问时可以传 127.0.0.1。
   python serve.py [端口] [监听地址] --check
     只建监听并自检 IPv4 / IPv6 通不通，不真的启动服务。
+
+日志：
+  这个文件在「应用还没起来」的阶段就输出，属于 `[服务]` 分类，
+  和运行期的 `[视频]/[生图]/[聊天]/[模型]/[体检]/[启动]` 用同一套格式与 handler，
+  所以 `journalctl -u bycanvas-backend` 里从第一行起就能按分类过滤。
+  uvicorn 自己的 `INFO:` 行保持原样（它已经带了状态码和耗时，不必再包一层）。
 """
 from __future__ import annotations
 
@@ -32,17 +38,56 @@ import sys
 
 BACKLOG = 2048
 
+# import app.log 需要 backend/ 在 sys.path 里；systemd / 脚本的 cwd 不一定对，
+# 所以放在最前面（原先是启动 uvicorn 前才 insert，日志就用不上统一格式了）。
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    from app import log as applog
+except Exception as _exc:      # noqa: BLE001 —— 依赖没装齐时也不能让日志哑掉
+    applog = None
+    _IMPORT_ERROR = _exc
+else:
+    _IMPORT_ERROR = None
+
+
+def say(msg: str, *args) -> None:
+    """启动阶段的常规输出，统一走 `[服务]` 分类。"""
+    if applog is None:
+        print(f'[服务] {msg % args if args else msg}', flush=True)
+        return
+    token = applog.set_category('服务')
+    try:
+        applog.log(msg, *args)
+    finally:
+        applog.reset_category(token)
+
+
+def say_error(msg: str, *args) -> None:
+    """启动阶段的失败输出，带 [ERROR] 标签，grep 得到。"""
+    if applog is None:
+        print(f'[服务] [ERROR] {msg % args if args else msg}', flush=True)
+        return
+    token = applog.set_category('服务')
+    try:
+        applog.error(msg, *args)
+    finally:
+        applog.reset_category(token)
+
 
 def _bind(host: str, port: int, **kw) -> socket.socket:
     try:
         return socket.create_server((host, port), backlog=BACKLOG, **kw)
     except OSError as exc:
         if exc.errno == errno.EADDRINUSE:
-            sys.exit(
-                f'[serve] 端口 {port} 已被占用。\n'
-                f'       先停掉旧服务：sudo systemctl stop bychat-backend\n'
-                f'       或看是谁占着：sudo ss -lntp | grep {port}'
+            say_error(
+                '端口 %d 已被占用。\n'
+                '        先停掉旧服务：systemctl stop bycanvas-backend\n'
+                '        或看是谁占着：ss -lntp | grep %d\n'
+                '        换端口：bash ByCanvas.sh install --port <别的端口>',
+                port, port,
             )
+            sys.exit(1)
         raise
 
 
@@ -62,24 +107,24 @@ def make_listeners(host: str, port: int) -> list[socket.socket]:
         #     OSError，不会悄悄退化成 IPv6-only。
         return [_bind('::', port, family=socket.AF_INET6, dualstack_ipv6=True)]
     except (OSError, ValueError) as exc:
-        print(f'[serve] 双栈不可用（{type(exc).__name__}: {exc}），改用 IPv4 + IPv6 分别监听', flush=True)
+        say('双栈不可用（%s: %s），改用 IPv4 + IPv6 分别监听', type(exc).__name__, exc)
 
     # ② 两个单栈各绑一个
     socks: list[socket.socket] = []
     try:
         socks.append(_bind('0.0.0.0', port))
     except OSError as exc:
-        print(f'[serve] 绑 IPv4 失败：{exc}', flush=True)
+        say_error('绑 IPv4 失败：%s', exc)
     try:
         socks.append(_bind('::', port, family=socket.AF_INET6))
     except OSError as exc:
-        print(f'[serve] 绑 IPv6 失败：{exc}', flush=True)
+        say_error('绑 IPv6 失败：%s', exc)
 
     if socks:
         return socks
 
     # ③ 实在不行，退回 IPv4 单栈，让服务至少能起来
-    print('[serve] IPv6 也拿不到，退回纯 IPv4', flush=True)
+    say_error('IPv6 也拿不到，退回纯 IPv4')
     return [_bind('0.0.0.0', port)]
 
 
@@ -113,16 +158,19 @@ def main() -> None:
     port = int(args[0]) if len(args) > 0 else 7400
     host = args[1] if len(args) > 1 else '::'
 
+    if _IMPORT_ERROR is not None:
+        # 日志模块都 import 不了，通常意味着依赖没装齐；这里要明确说出来，
+        # 否则用户只会看到「服务起来了但一行日志都没有」。
+        print(f'[服务] [WARN] 日志模块不可用（{_IMPORT_ERROR!r}），'
+              f'本次输出不带统一格式；请检查是否已安装依赖', flush=True)
+
     socks = make_listeners(host, port)
     for sock in socks:
-        print(f'[serve] 监听 {sock.getsockname()[0]}:{port} —— {describe(sock)}', flush=True)
+        say('监听 %s:%d —— %s', sock.getsockname()[0], port, describe(sock))
 
     if check_only:
         selfcheck(port)
         return
-
-    # import app.main 需要 backend/ 在 sys.path 里；systemd / 脚本的 cwd 不一定对
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
     import uvicorn
 
@@ -133,7 +181,7 @@ def main() -> None:
         log_level=os.environ.get('UVICORN_LOG_LEVEL', 'info'),
         timeout_keep_alive=75,     # 生图要 40s+，别让 keep-alive 把连接掐了
     )
-    print(f'[serve] 启动 uvicorn（{len(socks)} 个监听 socket）', flush=True)
+    say('启动 uvicorn（%d 个监听 socket）', len(socks))
     uvicorn.Server(config).run(sockets=socks)
 
 

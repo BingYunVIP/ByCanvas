@@ -9,44 +9,52 @@ function fmt(d) {
 }
 function shift(daysAgo) { const d = new Date(); d.setDate(d.getDate() - daysAgo); return d }
 
-const PROMPT_SELFIE = `生成一张 {argument name="比例" default="9:16"} 竖版写实感人物照片，参考高级手机自拍质感，但不要完全普通生活照。整体像是用 iPhone 前置摄像头在温馨卧室中拍摄的精致自拍，保留柔和美型、干净构图和自然高级感。画质为真实手机照片质感，有轻微噪点、轻微柔焦和自然光感，但人物依然精致、漂亮、肤质自然干净，不要变成粗糙低质照片。画面中是一位{argument name="人物描述" default="成年东方女性"}，坐在温馨卧室床上，上半身近景自拍构图，镜头略微从上方俯拍，人物位于画面中央偏右，头部微微低下，视线安静看向右下方，表情自然、平静、温柔，嘴唇自然闭合，整体气质柔和、成熟、安静。人物拥有浅蓝色或冰蓝色长发，发丝自然蓬松，有轻微凌乱感，部分头发垂落在脸侧和肩颈周围。人物保持精致写实美型，脸型柔和自然，五官清秀，皮肤白皙但不过度磨皮，可保留少量真实肤质纹理、细小毛孔、轻微肤色不均和几处很淡的小黑痣，但整体仍然干净、柔和、好看。人物身材丰腴，肩颈线条柔和，胸部饱满，不卡通化。服装为{argument name="服装" default="浅蓝色丝缎吊带睡裙"}，带白色蕾丝花边，胸前有简洁小蝴蝶结和自然褶皱，布料柔软贴合身体，呈现真实丝缎材质光泽。人物一只手自然轻轻拉住肩带或肩部附近衣料，手指数量正常，姿态自然。背景为温馨卧室，有床铺、浅色床品、木质床头柜、暖黄色床头灯、窗帘和柔和室内光。背景轻微虚化，保留真实居家空间感。光线为室内暖光与自然光混合，略微偏暖，画面柔和、亲密、生活化，但保持干净高级。整体风格：写实手机自拍、高级自然美型、轻微 iPhone 前置摄像头质感、柔和暖光、自然肤质、真实比例、温馨卧室、精致但不过度商业修图。`
+/* 演示提示词：用 Markdown 排版，顺带展示画布支持 Markdown 渲染
+   （标题 / 有序无序列表 / 引用 / 加粗 / 分隔线）。 */
 
-const PROMPT_CLASSROOM = `Goal: Create a realistic vertical smartphone social-media video screenshot of an after-school classroom scene, styled like a Japanese short-video app post.
+const PROMPT_CAFE = `**一位美丽的东亚年轻女性**坐在户外一家温馨、质朴的巴黎咖啡馆桌旁。她留着长长的波浪状棕色头发，梳成半扎发型，并用一个大号米色缎带蝴蝶结系住。她用手托着下巴，带着柔和自然的妆容，若有所思地望向远方。
 
-Canvas: 9:16 vertical image, 675×1125 style composition, natural daylight, realistic phone-camera look, slight wide-angle perspective, high detail, no illustration style.
+她身穿一件奶油色罗纹针织开衫毛衣和一条棕色格纹复古半身裙。深色圆形木桌上放着一束用新闻纸包裹的赤陶橙色菊花和一本打开的杂志。
 
-Main scene: In a Japanese high school classroom after school, show exactly 2 foreground teenage girls in summer uniforms. The central girl is fully visible from head to mid-thigh, looking directly at the camera with a shy smile, holding a beige smartphone with small cute stickers partly covering her mouth. She has straight {argument name="hair color" default="dark brown"} shoulder-length hair with thin bangs, soft natural makeup, and large expressive eyes. Her left hand holds the strap of a navy shoulder bag. The second girl stands cropped on the right edge, visible from half of her face down to her skirt, smiling gently toward the camera.
+> 温暖的午后黄金时刻阳光在背景中营造出柔和的光晕和散景效果。电影感摄影，浅景深，暖色调，美学风格，高分辨率，8k。`
 
-Uniform and accessories: Both girls wear crisp white short-sleeve button-up shirts, navy-and-green plaid pleated skirts, and navy striped ribbon bow ties. The central girl carries a glossy navy school bag covered with exactly 8 visible plush keychains and charms: 1 large cream teddy bear, 1 smaller white teddy bear, 1 cream bear with pink bow, 1 fluffy white animal charm, 1 lavender plush charm, 1 pink plush charm, 1 small beige tag charm, and 1 metal chain charm.
+const PROMPT_SELFIE = `生成一张 **9:16** 竖版写实感人物照片，参考高级手机自拍质感，但不要完全普通生活照。整体像是用 iPhone 前置摄像头在温馨卧室中拍摄的精致自拍，保留柔和美型、干净构图和自然高级感。画质为真实手机照片质感，有轻微噪点、轻微柔焦和自然光感，但人物依然精致、漂亮、肤质自然干净，不要变成粗糙低质照片。
 
-Background: A busy classroom with wooden desks and chairs, chalkboard on the back right, tall windows on the left with bright daylight. Include exactly 6 background students in white shirts: 2 seated at desks near the left foreground with backs/side views, 1 standing or leaning near the windows, 2 seated near the middle-back, and 1 seated near the chalkboard. Keep them softly out of focus compared with the foreground girls.
+画面中是一位成年东方女性，坐在温馨卧室床上，上半身近景自拍构图，镜头略微从上方俯拍，人物位于画面中央偏右，头部微微低下，视线安静看向右下方，表情自然、平静、温柔，嘴唇自然闭合，整体气质柔和、成熟、安静。
 
-App overlay layout: Add a short-video app interface overlay on top of the photo. Right-side vertical action bar with exactly 5 stacked elements: 1 circular profile thumbnail with a pink plus badge, 1 white heart icon with count “3.2万”, 1 white speech-bubble icon with count “162”, 1 white share arrow icon with count “392”, and 1 small circular spinning-record thumbnail at the bottom. Bottom-left caption area contains the username and post text in white Japanese text: “@{argument name="username" default="yui._.daily"} ・ 3時間前”, then “{argument name="caption text" default="放課後の教室ってなんか特別だよね🧸"}”, then “{argument name="hashtags" default="#jk #放課後 #クラスメイト #日常"}”, then a music line with a musical note icon: “オリジナル楽曲 - yui._.daily”. Bottom black comment bar contains placeholder text “すてきなコメントを書く...” plus exactly 2 icons on the right: an @ symbol and a smiley face.
+人物拥有浅蓝色或冰蓝色长发，发丝自然蓬松，有轻微凌乱感，部分头发垂落在脸侧和肩颈周围。人物保持精致写实美型，脸型柔和自然，五官清秀，皮肤白皙但不过度磨皮，可保留少量真实肤质纹理、细小毛孔、轻微肤色不均和几处很淡的小黑痣，但整体仍然干净、柔和、好看。
 
-Visual style: Photorealistic Japanese teen lifestyle snapshot, warm natural lighting, clean skin texture, realistic fabric folds, accurate hands and fingers, believable classroom depth, subtle social-media compression, candid but polished.
+人物身材丰腴，肩颈线条柔和，胸部饱满，不卡通化。
 
-Constraints: Preserve the exact counts of foreground girls, background students, plush charms, and overlay elements. Keep the image wholesome and non-explicit. Do not add extra people in the foreground, do not add watermarks, and avoid distorted text or broken hands.`
+服装为浅蓝色丝缎吊带睡裙，带白色蕾丝花边，胸前有简洁小蝴蝶结和自然褶皱，布料柔软贴合身体，呈现真实丝缎材质光泽。人物一只手自然轻轻拉住肩带或肩部附近衣料，手指数量正常，姿态自然。
 
-const PROMPT_DOODLE = `使用上传的参考图像作为严格的身份和服装参考。准确保留面部、五官特征、肤色、发型、发色、配饰、服装以及整体氛围。
-创作一幅高质量垂直比例（4:5 或 9:16）的混合媒介肖像，包含：
-一个写实的全身体现人物。旁边墙上有一个该人物的黑色手绘涂鸦影子。
-真人应显得可爱、略带尴尬、俏皮，并在每次生成时自然地模仿一个新的随机顽皮姿势。涂鸦影子应以更夸张、混乱、卡通化的方式执行相同的姿势创意，并带有漫画动感线、星星、爱心和闪光效果。
-使用干净的白色/奶油色工作室墙面，极简背景，柔和的自然光，并确保两个人物完全可见。涂鸦影子应通过发型、配饰、服装轮廓和姿势清晰地与真人相似。
-负面提示词：服装变化、身份变化、写实的第二个人物、正常阴影、恐怖、动漫人类、杂乱背景、重复的指向或手指枪姿势、僵硬姿势、多余的肢体/手指、扭曲的身体、文字、水印、标志、AI 伪影。`
+背景为温馨卧室，有床铺、浅色床品、木质床头柜、暖黄色床头灯、窗帘和柔和室内光。背景轻微虚化，保留真实居家空间感。
 
-const PROMPT_CHART = `请根据附件插图中的角色，创建一个校园剧风格的“人物关系图”。
-[要求]
-- 主角姓名：[{argument name="character name" default="在此输入姓名"}]
-- 将主角置于画面中心，突出显示。
-- 以放射状布局围绕主角排列好友、竞争对手、暗恋对象、家人、同学、表亲等。
-- 每个角色以可爱的头像或半身剪纸插画形式呈现。
-- 使用彩色箭头（→）连接各个人物关系。
-- 在箭头旁添加简短、可爱的手写风格注释（例如：“最好的朋友！”、“怦然心动……”、“虽然是竞争对手，但……”）。
-- 整体设计采用 {argument name="color theme" default="粉色/粉彩"} 色调，并点缀星星、爱心和花朵等可爱装饰。
-- 标题应采用“校园剧人物关系图”风格。
-- 营造出温馨有趣的校园青春喜剧氛围。`
+光线为室内暖光与自然光混合，略微偏暖，画面柔和、亲密、生活化，但保持干净高级。
 
-const PROMPT_CAFE = `一位美丽的东亚年轻女性坐在户外一家温馨、质朴的巴黎咖啡馆桌旁。她留着长长的波浪状棕色头发，梳成半扎发型，并用一个大号米色缎带蝴蝶结系住。她用手托着下巴，带着柔和自然的妆容，若有所思地望向远方。她身穿一件奶油色罗纹针织开衫毛衣和一条棕色格纹复古半身裙。深色圆形木桌上放着一束用新闻纸包裹的赤陶橙色菊花和一本打开的杂志。温暖的午后黄金时刻阳光在背景中营造出柔和的光晕和散景效果。电影感摄影，浅景深，暖色调，美学风格，高分辨率，8k。`
+**整体风格**：写实手机自拍、高级自然美型、轻微 iPhone 前置摄像头质感、柔和暖光、自然肤质、真实比例、温馨卧室、精致但不过度商业修图。`
+
+const PROMPT_MINIMODEL = `**第三视角自由拖拽/旋转/缩放的微缩三维模型**，无任何 UI，方形底座。
+
+1. 日式便利店街角为主体，玻璃橱窗、自动门、屋檐雨棚、自动贩卖机、自行车、雨伞架等元素齐全。
+2. 店内必须明亮温暖、货架整齐、便当区/饮料柜/收银/关东煮台等细节丰富，透过大玻璃能清楚看到内部。
+3. 室外潮湿昏暗雨夜，形成强烈冷暖对比，营造经典日式动画雨夜氛围。
+4. **美术风格**：高精细建模 + 三渲二卡通渲染、清晰轮廓线、湿润反光、二次元日常感。
+5. **动效点缀**：持续降雨、屋檐滴水、积水波纹、招牌微闪、自动门偶开、路面反光等，静止中带恰到好处的生命力。`
+
+const PROMPT_BILLIARDS = `超写实 IMAX 级 Netflix 风格电影感台球肖像，**9:16 竖屏**。使用上传的图像作为主要视觉参考，并严格保留精确的面部特征、比例和标志性细节。
+
+创作一位身穿紧身亮红色无袖连衣裙的女性，裙子配有细肩带，佩戴一条精致的银色项链，吊坠为小巧的蓝色宝石。她俯身于绿色绒面台球桌前，躯干朝向镜头，肩膀下沉，呈现出专注的击球姿态。她的左臂横跨桌面，手掌向下，手指张开形成架杆姿势，位于黄色母球旁；右手握住木质球杆的另一端，引导球杆斜向对准母球。她的头部微微低下，眼神透过放松的眉毛直视镜头；嘴唇紧闭，表情微妙而严肃。
+
+她留着深棕色长发，中分发型，发丝呈光滑蓬松的大波浪垂落在双肩两侧，额前的弯曲发束勾勒出脸颊轮廓。皮肤白皙透亮，呈现瓷质感，色调为明亮的象牙白至浅米色，带有中性冷调底色和自然真实的纹理。
+
+背景是柔和虚化的室内台球厅，暖琥珀色的墙壁、模糊的顾客身影和暗淡的绿色台面填充其中。温暖的顶光在她的头发和肩膀上营造出柔和的高光，同时柔和的阴影塑造出面部和手臂的立体感。
+
+应用电影级色彩分级：浓郁的祖母绿绒面、鲜艳的红色服装、温暖的琥珀棕色环境、受控的对比度、柔和的背景散景以及微妙的胶片质感。保持前景中的母球和架杆手突出，利用浅景深将注意力集中在她的面部和击球姿态上。
+
+---
+
+**负面提示词**：球杆对齐错误、架杆手位置不当、手指变形、台球杆形状异常、解剖结构不自然、身份特征改变、塑料感皮肤、文字、水印。`
 
 /* =====================================================
    界面缩放：按屏幕/视口宽度自动放大字号（2K/4K 屏不再过小）
@@ -67,13 +75,13 @@ function computeGutter() {
   const vw = window.innerWidth || (window.screen && window.screen.width) || 1440
   const mainW = Math.max(vw - 290, 320)   // 290 = 侧边栏宽度
   let g
-  if (vw >= 2560) g = Math.max(320, vw * 0.12)
-  else if (vw >= 1920) g = Math.max(200, vw * 0.10)
-  else if (vw >= 1600) g = Math.max(140, vw * 0.08)
-  else if (vw >= 1440) g = Math.max(90, vw * 0.06)
-  else if (vw >= 1024) g = 48
-  else g = 24
-  return Math.round(Math.min(g, mainW * 0.22))
+  if (vw >= 2560) g = Math.max(120, vw * 0.05)
+  else if (vw >= 1920) g = Math.max(80, vw * 0.04)
+  else if (vw >= 1600) g = Math.max(56, vw * 0.035)
+  else if (vw >= 1440) g = Math.max(40, vw * 0.03)
+  else if (vw >= 1024) g = 24
+  else g = 16
+  return Math.round(Math.min(g, mainW * 0.12))
 }
 function applyUiScale() {
   const root = document.documentElement
@@ -85,81 +93,135 @@ window.addEventListener('resize', applyUiScale)
 
 const DEFAULT_CONVERSATIONS = [
   {
-    id: 1, title: '逼真的 iPhone 自拍风格东亚女性肖像',
-    date: fmt(shift(0)), createdAt: Date.now(), pinned: true, active: true,
-    prompt: PROMPT_SELFIE,
-    images: ['assets/realistic-female-iphone-selfie-portrait.jpg'],
-    sentAt: '2026-09-14 14:38', duration: '38.6 秒',
+    id: 1, title: 'GPT生图', date: fmt(shift(0)), createdAt: Date.now(), pinned: true, active: true,
+    rounds: [
+      {
+        prompt: PROMPT_CAFE, images: ['assets/gpt_prompt_1.png'],
+        sentAt: '', duration: '155.3 秒',
+        params: { model: 'gpt-image-2.5-sunburst' },
+        usage: { input_tokens: 4893, output_tokens: 1593, cache_read_tokens: 0 },
+      },
+      {
+        prompt: PROMPT_SELFIE, images: ['assets/gpt_prompt_2.png'],
+        sentAt: '', duration: '54.9 秒',
+        params: { model: 'gpt-image-2.5-sunburst' },
+        usage: { input_tokens: 3953, output_tokens: 1769, cache_read_tokens: 0 },
+      },
+    ],
   },
   {
-    id: 2, title: '日本教室短视频截图',
-    date: fmt(shift(0)), createdAt: Date.now() - 1, pinned: true, active: false,
-    prompt: PROMPT_CLASSROOM,
-    images: ['assets/japanese-classroom-video-screenshot.jpg'],
-    sentAt: '2026-09-14 11:20', duration: '52.3 秒',
+    id: 2, title: 'Grok视频', date: fmt(shift(0)), createdAt: Date.now() - 1, pinned: true, active: false,
+    rounds: [
+      {
+        prompt: PROMPT_MINIMODEL, images: ['assets/grok.mp4'], mediaKind: 'video',
+        sentAt: '', duration: '140.2 秒',
+        params: { model: 'grok-imagine-video-1.5' },
+      },
+    ],
   },
   {
-    id: 3, title: '真人涂鸦影子',
-    date: fmt(shift(1)), createdAt: Date.now() - 2, pinned: false, active: false,
-    prompt: PROMPT_DOODLE,
-    images: ['assets/real-person-doodle-shadow.jpg'],
-    sentAt: '2026-09-13 22:05', duration: '29.8 秒',
-  },
-  {
-    id: 4, title: '校园剧风格人物关系图生成器',
-    date: fmt(shift(1)), createdAt: Date.now() - 3, pinned: false, active: false,
-    prompt: PROMPT_CHART,
-    images: ['assets/school-drama-relationship-chart.jpg'],
-    sentAt: '2026-09-13 16:47', duration: '44.1 秒',
-  },
-  {
-    id: 5, title: '巴黎咖啡馆人像',
-    date: fmt(shift(2)), createdAt: Date.now() - 4, pinned: false, active: false,
-    prompt: PROMPT_CAFE,
-    images: ['assets/parisian-cafe-golden-hour.jpg'],
-    sentAt: '2026-09-12 09:12', duration: '33.5 秒',
+    id: 3, title: 'Grok生图', date: fmt(shift(0)), createdAt: Date.now() - 2, pinned: false, active: false,
+    rounds: [
+      {
+        prompt: PROMPT_BILLIARDS, images: ['assets/grok.png'],
+        sentAt: '', duration: '19.7 秒',
+        params: { model: 'grok-imagine-image-2.0' },
+      },
+    ],
   },
 ]
+
+/** 演示集版本号。演示内容整批换过（旧 5 条 → 新 3 条）后必须递增：
+    旧版留下的「删除演示」墓碑按旧编号记录，直接沿用会把同编号的新演示挡掉。
+    版本变化时清一次演示墓碑，用户自己删掉的对话记录不受影响。 */
+const EXAMPLE_SET_VERSION = 2
+
+/* 示例的轮次：新格式用 rounds；老格式（单轮 prompt/images）继续兼容。 */
+function exampleRounds(example) {
+  if (Array.isArray(example.rounds) && example.rounds.length) return example.rounds
+  return [{ prompt: example.prompt, images: example.images || [], sentAt: example.sentAt, duration: example.duration }]
+}
+
 /* 每个对话自己的提问历史：「历史提问」面板只显示当前对话的记录。
-   示例数据每个对话只有 1 轮真实提问——多轮由用户真实发送后累积，不再伪造。 */
+   示例数据是真实测试结果（图片 / 视频都是站点静态素材），用户后续真实发送的轮次
+   会累积在后面，不再伪造。 */
 function createExampleConversation(example, id = example.id) {
+  const { rounds: _rounds, ...meta } = example
+  const list = exampleRounds(example)
   return {
-    ...example, id, exampleId: example.id, images: [...example.images],
-    messages: [{ prompt: example.prompt, images: [...example.images], sentAt: example.sentAt, duration: example.duration }],
+    ...meta, id, exampleId: example.id,
+    images: [...(list[0].images || [])],
+    messages: list.map((round) => ({ ...round, images: [...(round.images || [])],
+      ...(round.params ? { params: { ...round.params } } : {}),
+      ...(round.usage ? { usage: { ...round.usage } } : {}),
+    })),
   }
 }
+
 let conversations = DEFAULT_CONVERSATIONS.map((example) => createExampleConversation(example))
 let nextId = 7
 
-/** 每次加载补回默认示例，兼容旧版清空记录；编号冲突时为示例分配新编号。 */
-function restoreExampleConversations(saved, deleted = []) {
-  const restored = Array.isArray(saved) ? saved.map((c) => ({ ...c })) : []
-  const usedIds = new Set(restored.map((c) => String(c.id)))
-  let availableId = Math.max(7, ...restored.map((c) => Number(c.id) + 1).filter(Number.isFinite))
+/** 每次加载补回默认示例，兼容旧版清空记录；编号冲突时为示例分配新编号。
+    这样浏览器清掉站点数据后，演示对话（含图片 / 视频 / 提示词）会自动回来，
+    用户新增的对话、图片、视频、设置和 API Key 均随浏览器站点数据清除。 */
+function restoreExampleConversations(saved, deleted = [], reservedIds = []) {
+  const legacyAssets = ['japanese-classroom-video-screenshot.jpg', 'parisian-cafe-golden-hour.jpg',
+    'real-person-doodle-shadow.jpg', 'realistic-female-iphone-selfie-portrait.jpg', 'school-drama-relationship-chart.jpg']
+  const legacyTitles = ['逼真的 iPhone 自拍风格东亚女性肖像', '日本教室短视频截图', '真人涂鸦影子',
+    '校园剧风格人物关系图生成器', '巴黎咖啡馆人像']
+  const isLegacyAsset = (src) => typeof src === 'string' && legacyAssets.some((file) => src === `assets/${file}`)
+  const restored = (Array.isArray(saved) ? saved : []).flatMap((row) => {
+    const c = { ...row }
+    const oldSeed = legacyTitles.includes(c.title) || (c.images || []).some(isLegacyAsset)
+      || (c.messages || []).some((m) => (m.images || []).some(isLegacyAsset))
+    if (!oldSeed) return [c]
+    c.messages = (c.messages || []).filter((m, i) => !(m.images || []).some(isLegacyAsset)
+      && !(i === 0 && legacyTitles.includes(c.title) && !m.images?.length && !m.text))
+    if (!c.messages.length) return []
+    delete c.exampleId
+    delete c.prompt
+    c.images = (c.images || []).filter((src) => !isLegacyAsset(src))
+    if (legacyTitles.includes(c.title)) c.title = c.messages[0].prompt?.slice(0, 40) || '新对话'
+    return [c]
+  })
+  // 墓碑行同样占着编号：不算进来的话，新演示会直接覆盖掉一条已删除记录。
+  const usedIds = new Set([...restored.map((c) => String(c.id)), ...reservedIds.map(String)])
+  let availableId = Math.max(7,
+    ...restored.map((c) => Number(c.id) + 1).filter(Number.isFinite),
+    ...reservedIds.map((id) => Number(id) + 1).filter(Number.isFinite))
   for (const example of DEFAULT_CONVERSATIONS) {
     if (deleted.includes(example.id)) continue
+    const original = createExampleConversation(example)
+    const anchor = original.messages[0]
+    const anchorImage = anchor.images[0]
     const existing = restored.find((c) => c.exampleId === example.id
-      || (c.exampleId == null && (c.id === example.id || c.images?.includes(example.images[0])
-        || c.messages?.some((m) => m.images?.includes(example.images[0])))
-        && (c.prompt === example.prompt || c.messages?.[0]?.prompt === example.prompt)))
+      || (c.exampleId == null && (c.id === example.id || c.images?.includes(anchorImage)
+        || c.messages?.some((m) => m.images?.includes(anchorImage)))
+        && (c.messages?.[0]?.prompt === anchor.prompt || c.prompt === anchor.prompt)))
     if (!existing) {
       const id = usedIds.has(String(example.id)) ? availableId++ : example.id
       usedIds.add(String(id))
       restored.push(createExampleConversation(example, id))
       continue
     }
-    const original = createExampleConversation(example, existing.id)
+    const target = createExampleConversation(example, existing.id)
     const messages = Array.isArray(existing.messages) ? [...existing.messages] : []
-    // 已生成的新结果和后续提问都保留，只修补缺少的原始示例轮次或图片。
-    const index = messages.findIndex((m) => m.prompt === example.prompt
-      && m.images?.some((src) => example.images.includes(src)))
-    if (index < 0) {
-      const emptyIndex = messages.findIndex((m) => m.prompt === example.prompt && !m.images?.length && !m.text)
-      if (emptyIndex >= 0) messages[emptyIndex] = original.messages[0]
-      else messages.unshift(original.messages[0])
-    }
-    const createdAt = existing.createdAt ?? original.createdAt
-    Object.assign(existing, { ...original, ...existing, messages, createdAt, exampleId: example.id })
+    // 逐轮修补：示例的每一轮都必须在——缺图片的补回图片，整轮缺失的补回整轮；
+    // 用户后续新增的轮次与生成结果原样保留。
+    target.messages.forEach((round, i) => {
+      const index = messages.findIndex((m) => m.prompt === round.prompt && m.images?.some((src) => round.images.includes(src)))
+      if (index >= 0) return
+      const emptyIndex = messages.findIndex((m) => m.prompt === round.prompt && !m.images?.length && !m.text)
+      // 视频轮必须连 mediaKind 一起补回，否则会被当成图片渲染成裂图。
+      if (emptyIndex >= 0) messages[emptyIndex] = {
+        ...messages[emptyIndex],
+        images: [...round.images],
+        ...(round.mediaKind ? { mediaKind: round.mediaKind } : {}),
+      }
+      else messages.splice(Math.min(i, messages.length), 0, round)
+    })
+    const createdAt = existing.createdAt ?? target.createdAt
+    Object.assign(existing, { ...target, ...existing, messages, createdAt, exampleId: example.id })
   }
   return restored
 }
@@ -177,7 +239,7 @@ let currentAbort = null   // 生成中的请求，点发送 = 取消它
 /** 正在生成的那一轮，格式 `${会话id}:${轮次下标}`。
     用来在气泡里显示转圈，而不是留一个空白的「总耗时：」。 */
 let runningRoundKey = null
-/** 这一轮是出图还是文本回复：'image' | 'chat' */
+/** 这一轮是什么任务：'image' | 'video' | 'chat'（决定转圈文案和停止按钮文案） */
 let runningRoundKind = 'image'
 /** 流式输出中已收到的正文 / 推理内容。后端 SSE 已经在逐段推了，
     以前是把它们攒成整段结束后才渲染，流式等于白做 —— 现在边收边显示。 */
@@ -250,7 +312,7 @@ function showToast(message, type = 'info') {
   layer.style.zIndex = document.querySelector('.modal-layer') ? '600' : ''
   iconEl.className = `toast-icon ${type}`
   iconEl.innerHTML = TOAST_ICONS[type] || TOAST_ICONS.info
-  textEl.textContent = type === 'error' && window.ByImageI18n ? ByImageI18n.message(message) : message
+  textEl.textContent = type === 'error' && window.ByCanvasI18n ? ByCanvasI18n.message(message) : message
   layer.classList.add('show')
   clearTimeout(toastTimer)
   toastTimer = setTimeout(() => layer.classList.remove('show'), 1800)
@@ -282,12 +344,12 @@ function askConfirm({ title, desc, confirmText = () => tr('确定'), danger = tr
       root.querySelector('.confirm-desc').textContent = text(desc)
       root.querySelector('[data-act="ok"]').textContent = text(confirmText)
     }
-    window.addEventListener('byimage:languagechange', translate)
+    window.addEventListener('bycanvas:languagechange', translate)
     fitOverlayToContent(layer)
     if (document.querySelector('.modal-layer')) layer.style.zIndex = '600'
     requestAnimationFrame(() => layer.classList.add('show'))
     const close = (v) => {
-      window.removeEventListener('byimage:languagechange', translate)
+      window.removeEventListener('bycanvas:languagechange', translate)
       document.removeEventListener('keydown', onKey)
       layer.classList.remove('show')
       setTimeout(() => { root.innerHTML = '' }, 200)
@@ -873,8 +935,8 @@ const ICON_RETRY = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><
 
 /** 已发送提示词支持 Markdown 排版，代码块里的参数示例保持原样。 */
 function renderPromptHtml(text) {
-  if (!window.ByChatFormat) return escapeHtml(text)
-  return window.ByChatFormat.renderMarkdown(text, {
+  if (!window.ByCanvasFormat) return escapeHtml(text)
+  return window.ByCanvasFormat.renderMarkdown(text, {
     renderArgument: (name, value, index) => `<span class="arg-chip" data-argument-index="${index}" data-name="${escapeHtml(name)}" data-value="${escapeHtml(value)}" title="${escapeHtml(tr("点击修改「{0}」", name))}" onclick="editArgument(event, this)"><span class="arg-name">${escapeHtml(name)}</span><span class="arg-value">${escapeHtml(value)}</span></span>`,
   })
 }
@@ -921,10 +983,10 @@ function imageSrcOf(src) {
 async function resolveImageSrc(src) {
   if (!isImageId(src)) return src || ''
   if (IMAGE_URLS.has(src)) return IMAGE_URLS.get(src)
-  if (!window.ByChatDB) return ''
+  if (!window.ByCanvasDB) return ''
   if (!IMAGE_REQUESTS.has(src)) {
     const request = Promise.resolve()
-      .then(() => window.ByChatDB.imageUrl(src))
+      .then(() => window.ByCanvasDB.imageUrl(src))
       .then((url) => {
         if (url) IMAGE_URLS.set(src, url)
         return url || ''
@@ -938,18 +1000,19 @@ async function resolveImageSrc(src) {
 
 /** 重绘之后补齐：把还没取到地址的 id 从 IndexedDB 读出来，原地填进 <img> */
 async function hydrateImages() {
-  if (!window.ByChatDB) return
+  if (!window.ByCanvasDB) return
   const pending = Array.from(document.querySelectorAll('#chatView .msg-img.is-loading[data-img-id]'))
   await Promise.all(pending.map(async (box) => {
     const url = await resolveImageSrc(box.dataset.imgId)
     // 切换前的旧节点可能已被移除，读取结果只填回仍显示的节点。
     if (!box.isConnected) return
-    const img = box.querySelector('img')
-    if (url && img) {
-      img.src = url
+    // 图片是 <img>，视频是 <video>，同一套读取逻辑
+    const media = box.querySelector('img, video')
+    if (url && media) {
+      media.src = url
       box.classList.remove('is-loading')
-    } else if (img) {
-      onChatImageError(img)
+    } else if (media) {
+      onChatImageError(media)
     }
   }))
 }
@@ -1039,10 +1102,10 @@ function paintStreamingBubble() {
  *   gpt-*     → /v1/responses       （OpenAI 新版协议）
  *   其他       → auto：先试 /responses，没吐出内容就回退 /chat/completions
  */
-const CHAT_MODE_KEY = 'bychat.chatMode'
+const CHAT_MODE_KEY = 'bycanvas.chatMode'
 
 /** 设置里没有这个选项（前端要照抄原型、不能自创 UI），
- *  所以留一个手动覆盖口子：localStorage 里写 bychat.chatMode，
+ *  所以留一个手动覆盖口子：localStorage 里写 bycanvas.chatMode，
  *  或临时在地址后加 ?chatMode=chat_completions 访问一次即可。
  *  可选值：auto / responses / chat_completions / messages。 */
 function chatModeOverride() {
@@ -1110,9 +1173,20 @@ async function refsToDataUrls(refs, signal) {
   return out
 }
 
-/** 这一轮到底是出图还是纯聊天：决定转圈文案和走哪个接口 */
+/** 这一轮到底是出图、出视频还是纯聊天：决定转圈文案和走哪个接口 */
 function taskKindFor(model) {
-  return (MODELS.find((m) => m.id === model)?.kind || (/image|dall|flux|midjourney|imagen|seedream/i.test(model) ? 'image' : 'chat')) === 'image' ? 'image' : 'chat'
+  // 目录（openrouter.ai 同步来的快照）已经给出种类时直接采信 —— 它有 chat / image / video 三值。
+  // ⚠️ 这里原来只判断 `=== 'image'`，于是 kind === 'video' 会一路掉进聊天分支，
+  // 选视频模型时发出去的是聊天请求，视频功能整个不可用（真机冒烟才暴露出来）。
+  const kind = MODELS.find((m) => m.id === model)?.kind
+  if (kind) return kind
+  // 目录里没有（上游新增的模型还没跑同步脚本）：按 id 猜，关键字与 api.js 的 guessKind 对齐。
+  // 常量写在函数体内：单测用 vm 只抽函数体，抽不到模块级 const。
+  const videoHints = ['video', 'sora', 'veo', 'kling', 'runway']
+  const imageHints = ['image', 'dall', 'flux', 'midjourney', 'imagen', 'seedream']
+  const id = String(model || '').toLowerCase()
+  if (videoHints.some((hint) => id.includes(hint))) return 'video'
+  return imageHints.some((hint) => id.includes(hint)) ? 'image' : 'chat'
 }
 
 /** 聊天区滚到底部：发出消息 / 收到回复后要看到最新内容 */
@@ -1185,7 +1259,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const expandedPrompts = new Set()
 
 function assistantText(text) {
-  return window.ByChatFormat ? window.ByChatFormat.renderMarkdown(text) : escapeHtml(text)
+  return window.ByCanvasFormat ? window.ByCanvasFormat.renderMarkdown(text) : escapeHtml(text)
 }
 
 function toggleMessagePrompt(roundIdx, button) {
@@ -1234,8 +1308,20 @@ function renderChatView() {
     const prompt = String(m.prompt || '')
     const collapsible = prompt.length > 320 || prompt.split('\n').length > 5
     const expanded = expandedPrompts.has(`${c.id}:${i}`)
+    const videoRound = m.mediaKind === 'video'
     const imgs = images.map((src, j) => {
       const url = imageSrcOf(src)
+      if (videoRound) {
+        return `<figure class="image-result">
+        <div class="msg-img msg-video${url ? '' : ' is-loading'}"${isImageId(src) ? ` data-img-id="${escapeHtml(src)}"` : ''}>
+          ${url ? `<video src="${escapeHtml(url)}" controls playsinline preload="metadata" onloadeddata="onChatImageLoaded(this)" onerror="onChatImageError(this)"></video>` : ''}
+        </div>
+        <figcaption class="image-actions">
+          <button class="msg-act" type="button" onclick="downloadCurrentVideo(${i}, ${j})">${ICON_DOWNLOAD}${escapeHtml(tr("下载视频"))}</button>
+          <button class="msg-act" type="button" onclick="retryRound(${i})" title="${escapeHtml(tr("使用本轮提示词再次生成"))}" data-i18n-title="使用本轮提示词再次生成">${ICON_RETRY}${escapeHtml(tr("再次生成"))}</button>
+        </figcaption>
+      </figure>`
+      }
       return `<figure class="image-result">
         <button class="msg-img${url ? '' : ' is-loading'}" type="button"${isImageId(src) ? ` data-img-id="${escapeHtml(src)}"` : ''} onclick="openLightboxFromEl(this)" aria-label="${escapeHtml(tr("放大查看第 {0} 张图片", j + 1))}">
           <img${url ? ` src="${escapeHtml(url)}"` : ''} alt="${escapeHtml(tr("{0} · 第 {1} 张", conversationTitle(c), j + 1))}" loading="${i === rounds.length - 1 ? 'eager' : 'lazy'}" onload="onChatImageLoaded(this)" onerror="onChatImageError(this)" />
@@ -1257,7 +1343,7 @@ function renderChatView() {
     ].filter(Boolean)
     const status = running
       ? `<button class="msg-act" type="button" onclick="cancelGeneration(this)">${svgIcon('M7 7h10v10H7z')}${escapeHtml(tr(isChatWait ? '停止回复' : '停止生成'))}</button>`
-      : `<span class="msg-result-label">${resultMeta.length ? resultMeta.map(escapeHtml).join(' · ') : images.length ? tr("图片已生成") : tr("回复")}</span>`
+      : `<span class="msg-result-label">${resultMeta.length ? resultMeta.map(escapeHtml).join(' · ') : images.length ? tr(videoRound ? "视频已生成" : "图片已生成") : tr("回复")}</span>`
     let aiInner
     if (running) {
       // 聊天在拿到第一个字/推理片段之前，跟生图一样先看大转圈，
@@ -1265,8 +1351,10 @@ function renderChatView() {
       const chatWaitingForFirstToken = isChatWait && !streamingText && !streamingReasoning
       aiInner = !isChatWait
         ? pendingBlock(
-            m.phase === 'planning' ? tr("正在理解描述与参考图") : tr("正在绘制你的想法"),
-            tr("图片完成后会显示在这里，你可以继续浏览对话。"),
+            m.phase === 'planning' ? tr("正在理解描述与参考图")
+              : m.phase === 'video' ? tr("正在生成视频")
+              : tr("正在绘制你的想法"),
+            tr(m.phase === 'video' ? "视频完成后会显示在这里，你可以继续浏览对话。" : "图片完成后会显示在这里，你可以继续浏览对话。"),
           )
         : chatWaitingForFirstToken
           ? pendingBlock(tr("等待消息返回"), tr("回复生成后会显示在这里，你可以继续浏览对话。"))
@@ -1274,7 +1362,7 @@ function renderChatView() {
     } else {
       aiInner = `${m.reasoning ? reasoningBlock(i, m.reasoning) : ''}
         ${m.text ? `<div class="msg-text msg-markdown">${assistantText(m.text)}</div>` : ''}
-        ${m.error ? `<div class="msg-err" role="alert">${escapeHtml(window.ByImageI18n ? ByImageI18n.message(m.error) : m.error)}</div>` : ''}
+        ${m.error ? `<div class="msg-err" role="alert">${escapeHtml(window.ByCanvasI18n ? ByCanvasI18n.message(m.error) : m.error)}</div>` : ''}
         ${m.cancelled && !m.text ? `<p class="msg-stopped">${escapeHtml(tr("已停止本次任务，可重新尝试。"))}</p>` : ''}
         ${imgs ? `<div class="msg-images${images.length > 1 ? ' is-grid' : ''}">${imgs}</div>` : ''}
         ${m.text || !images.length ? `<div class="msg-actions">
@@ -1298,7 +1386,7 @@ function renderChatView() {
       </section>
       <section class="msg is-assistant" data-round="${i}" aria-label="${escapeHtml(tr("第 {0} 轮回复", i + 1))}" aria-busy="${running}">
         <div class="msg-body">
-          <div class="msg-meta"><span class="msg-avatar is-ai"><img src="assets/logo.png" alt="" /></span><span class="msg-author">${escapeHtml(tr("冰云"))}</span>${status}${!running ? usageText(m.usage) : ''}</div>
+          <div class="msg-meta"><span class="msg-avatar is-ai"><img src="assets/logo.png" alt="" /></span><span class="msg-author">${escapeHtml(tr("冰云画布"))}</span>${status}${!running ? usageText(m.usage) : ''}</div>
           ${aiInner}
         </div>
       </section>`
@@ -1489,7 +1577,7 @@ async function downloadCurrentImage(roundIdx, imageIdx = 0) {
   try {
     const res = await fetch(src)
     if (!res.ok) throw new Error('HTTP ' + res.status)
-    const { blob, extension } = await ByChatImageExport.convertImage(await res.blob(), format)
+    const { blob, extension } = await ByCanvasImageExport.convertImage(await res.blob(), format)
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -1501,6 +1589,31 @@ async function downloadCurrentImage(roundIdx, imageIdx = 0) {
     showToast(tr("已开始下载"), 'success')
   } catch (e) {
     showToast('下载失败：' + (e.message || tr("无法转换图片格式")), 'error')
+  }
+}
+/** 视频原样下载（不做格式转换）：存的是 IndexedDB id，先换回真实地址。 */
+async function downloadCurrentVideo(roundIdx, videoIdx = 0) {
+  const c = conversations.find((x) => x.id === activeId)
+  const rounds = conversationRounds(c)
+  const m = rounds[roundIdx == null ? rounds.length - 1 : roundIdx]
+  if (!m || !m.images || !m.images[videoIdx]) { showToast(tr("该对话没有可下载的视频"), 'info'); return }
+  const src = await resolveImageSrc(m.images[videoIdx])
+  if (!src) { showToast(tr("视频还在读取中，请稍后再试"), 'info'); return }
+  const fileBase = `${c?.title || 'video'}${m.images.length > 1 ? `-${videoIdx + 1}` : ''}`
+  try {
+    const res = await fetch(src)
+    if (!res.ok) throw new Error('HTTP ' + res.status)
+    const url = URL.createObjectURL(await res.blob())
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${fileBase}.mp4`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 2000)
+    showToast(tr("已开始下载"), 'success')
+  } catch (e) {
+    showToast('下载失败：' + (e.message || ''), 'error')
   }
 }
 function promptForRound(roundIdx) {
@@ -1859,7 +1972,40 @@ function modelName(id) {
   const m = MODELS.find((x) => x.id === id)
   return m ? (m.name || m.id) : (id || tr("未选择"))
 }
-function pillValue(key) { return key === 'model' ? currentModel : key === 'size' ? currentSize : PILL_STATE[key] }
+/** 当前选中的是不是视频模型 */
+function isVideoModel(model = MODELS.find((m) => m.id === currentModel)) {
+  return model?.kind === 'video'
+}
+/**
+ * 视频参数候选（时长 / 清晰度 / 画面比例）。目录（openrouter.ai 同步来的快照）
+ * 里给了就以目录为准；没给就用内置兜底 —— 它来自上游 xAI 视频接口的公开规格：
+ * 时长 1-15 秒、清晰度 480p/720p/1080p、画面比例 1:1 ~ 5:2。
+ * 兜底值写在函数体内（而不是模块级常量），这样这个函数可以单独被测。
+ */
+function videoParameterOptions(name) {
+  const spec = MODELS.find((m) => m.id === currentModel)?.videoParameters?.[name]
+  if (Array.isArray(spec) && spec.length) return spec
+  const fallback = {
+    // 官方规格：duration 1-15 秒的整数，不传时上游默认 8 秒
+    duration: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'],
+    resolution: ['480p', '720p', '1080p'],
+    aspectRatio: ['1:1', '16:9', '9:16', '4:3', '3:4', '3:2', '2:3', '21:9', '5:2'],
+  }
+  return fallback[name] || []
+}
+function durationOptions() { return ['auto', ...videoParameterOptions('duration')] }
+/** 改 pill 的标签文字；同时更新 data-i18n，切换语言时仍然翻译得对 */
+function setPillLabel(key, text) {
+  const el = document.getElementById('label-' + key)
+  if (!el) return
+  el.dataset.i18n = text
+  el.textContent = tr(text)
+}
+function pillValue(key) {
+  if (key === 'model') return currentModel
+  if (key === 'size') return isVideoModel() ? currentDuration : currentSize
+  return PILL_STATE[key]
+}
 function imageParameter(key) {
   const model = MODELS.find((m) => m.id === currentModel)
   const name = { format: 'output_format', transparent: 'background' }[key] || key
@@ -1869,12 +2015,15 @@ function parameterApplicable(key) {
   const model = MODELS.find((m) => m.id === currentModel)
   if (key === 'model') return true
   if (key === 'reasoning') return model?.kind === 'chat' && pillOptions(key).length > 1
-  if (key === 'quality') return model?.kind === 'image' && pillOptions(key).length > 1
+  // 视频模型的「质量」位显示为「清晰度」，候选来自 videoParameters.resolution
+  if (key === 'quality') return (model?.kind === 'image' || model?.kind === 'video') && pillOptions(key).length > 1
   // 参考图对文本模型也开放：它会作为多模态内容一起发给模型，让模型看着图回答。
   // 判据是 OpenRouter 的 vision（input_modalities 含 image）；目录里没数据时是 null，
   // 这时不能顺手判成「不支持」——那会把能看图的模型的上传按钮给禁掉。
   // 只有 OpenRouter 明确说不支持（false），或 dall-e-3 这种不接受参考图的，才禁用。
   if (key === 'attach') return !!model && model.vision !== false && model.id.replace(/^openai\//, '') !== 'dall-e-3'
+  // 视频模型的「尺寸」位显示为「时长」
+  if (key === 'size' && model?.kind === 'video') return durationOptions().length > 1
   const spec = imageParameter(key)
   if (!spec) return false
   if (key === 'transparent') return PILL_STATE.format !== 'JPEG' && (!spec.options || spec.options.includes('transparent'))
@@ -1883,12 +2032,18 @@ function parameterApplicable(key) {
 }
 function pillOptions(key) {
   if (key === 'model') return MODELS.map((m) => ({ value: m.id, label: m.name || m.id }))
+  const model = MODELS.find((m) => m.id === currentModel)
   if (key === 'reasoning' || key === 'quality') {
-    const model = MODELS.find((m) => m.id === currentModel)
-    const values = key === 'reasoning' ? (model?.kind === 'chat' ? model.reasoningEfforts : []) : (model?.kind === 'image' ? model.qualityOptions : [])
+    const values = key === 'reasoning'
+      ? (model?.kind === 'chat' ? model.reasoningEfforts : [])
+      : model?.kind === 'video' ? videoParameterOptions('resolution')
+        : model?.kind === 'image' ? model.qualityOptions : []
     return [...new Set(['auto', ...(values || [])])]
       .filter((value) => key !== 'reasoning' || value !== 'none')
       .map((value) => ({ value, label: value === 'auto' ? tr("自动") : value }))
+  }
+  if (key === 'size' && model?.kind === 'video') {
+    return durationOptions().map((value) => ({ value, label: value === 'auto' ? tr("自动") : tr('{0} 秒', value) }))
   }
   const spec = imageParameter(key)
   if (!spec) return []
@@ -1925,7 +2080,15 @@ function syncModelCapabilities() {
     }
   }
   const sizeOptions = pillOptions('size')
-  if (parameterApplicable('size') && sizeOptions.length && !sizeOptions.some((o) => o.value === currentSize)) currentSize = sizeOptions[0].value
+  const video = model?.kind === 'video'
+  const sizeValue = video ? currentDuration : currentSize
+  if (parameterApplicable('size') && sizeOptions.length && !sizeOptions.some((o) => o.value === sizeValue)) {
+    if (video) currentDuration = sizeOptions[0].value
+    else currentSize = sizeOptions[0].value
+  }
+  // 视频模型：「质量」位显示为「清晰度」，「尺寸」位显示为「时长」
+  setPillLabel('quality', video ? '清晰度' : '质量')
+  setPillLabel('size', video ? '时长' : '尺寸')
   refreshSizePill()
   renderPillMenu('size')
   if (SZ.open && (modelChanged || !parameterApplicable('size'))) closeSizePicker()
@@ -1977,7 +2140,12 @@ function selectPill(key, value) {
     syncModelCapabilities()
     persistSettings()
   }
-  else if (key === 'size') { currentSize = value; refreshSizePill(); persistSettings() }
+  else if (key === 'size') {
+    if (isVideoModel()) currentDuration = value
+    else currentSize = value
+    refreshSizePill()
+    persistSettings()
+  }
   else { PILL_STATE[key] = value; syncModelCapabilities(); persistSettings() }
   closeAllPillMenus()
   if (key !== 'size') refreshPill(key)
@@ -2113,7 +2281,8 @@ function findPresetForSize(size) {
 /* =====================================================
    尺寸选择弹窗（照搬 SizePickerModal.tsx）
    ===================================================== */
-let currentSize = 'auto'
+let currentSize = 'auto'          // 图像尺寸（图片模型）
+let currentDuration = 'auto'      // 视频时长秒数（视频模型）
 const SZ = { open: false, mode: 'auto', tier: '1K', ratio: '1:1', customRatio: '16:9', customW: '1024', customH: '1024' }
 const SIZE_MODES = [['auto', '自动'], ['ratio', '按比例'], ['resolution', '自定义宽高']]
 
@@ -2121,16 +2290,23 @@ function refreshSizePill() {
   const el = document.getElementById('val-size')
   if (!el) return
   const applicable = parameterApplicable('size')
-  el.textContent = !applicable ? tr("不适用") : currentSize === 'auto' ? 'auto' : String(currentSize).replace('x', '×')
+  const video = isVideoModel()
+  const value = video ? currentDuration : currentSize
+  el.textContent = !applicable ? tr("不适用")
+    : value === 'auto' ? 'auto'
+      : video ? tr('{0} 秒', value) : String(value).replace('x', '×')
   const button = el.closest('button')
   button.disabled = !applicable
   button.classList.toggle('is-disabled', !applicable)
-  button.title = applicable ? tr("点击设置图像尺寸") : tr("尺寸：不适用")
+  button.title = applicable
+    ? tr(video ? "点击设置视频时长" : "点击设置图像尺寸")
+    : tr(video ? "时长：不适用" : "尺寸：不适用")
   if (!applicable) document.getElementById('menu-size')?.classList.remove('open')
 }
 function openSizePicker(event) {
   if (!parameterApplicable('size')) return
-  if (pillOptions('size').length) { togglePillMenu(event, 'size'); return }
+  // 视频模型：「尺寸」位是「时长」，候选是离散秒数，走普通菜单就够，不需要尺寸弹窗
+  if (isVideoModel() || pillOptions('size').length) { togglePillMenu(event, 'size'); return }
   const preset = currentSize && currentSize !== 'auto' ? findPresetForSize(currentSize) : null
   const parsed = String(currentSize).match(SIZE_PATTERN)
   SZ.mode = (!currentSize || currentSize === 'auto') ? 'auto' : (preset ? 'ratio' : 'resolution')
@@ -2348,6 +2524,12 @@ function buildParams(prompt) {
     if (PILL_STATE.reasoning !== 'auto' && PILL_STATE.reasoning !== 'none' && model.reasoningEfforts?.includes(PILL_STATE.reasoning)) params.reasoning_effort = PILL_STATE.reasoning
     return params
   }
+  if (model?.kind === 'video') {
+    // 视频只有三个参数：清晰度（复用「质量」位）、时长（复用「尺寸」位）、画面比例（暂不暴露）
+    if (PILL_STATE.quality && PILL_STATE.quality !== 'auto') params.resolution = PILL_STATE.quality
+    if (currentDuration && currentDuration !== 'auto') params.duration = Number(currentDuration)
+    return params
+  }
   if (parameterApplicable('size')) params.size = currentSize || 'auto'
   if (parameterApplicable('quality')) params.quality = PILL_STATE.quality || 'auto'
   if (parameterApplicable('format')) params.output_format = PILL_STATE.format.toLowerCase()
@@ -2493,7 +2675,7 @@ async function upstreamReport(profile, model, probe) {
     const budget = 130000
     const timer = setTimeout(() => ctrl.abort(), budget)
     const cred = { baseUrl: profile.url, apiKey: profile.key }
-    const r = await ByChatAPI.diagUpstream(cred, model, probe, ctrl.signal)
+    const r = await ByCanvasAPI.diagUpstream(cred, model, probe, ctrl.signal)
     clearTimeout(timer)
     const bad = (r.results || []).filter((x) => x.http !== 200)
     if (!bad.length) return tr("\n（上游体检：各接口都正常，可能是偶发，建议重试一次）")
@@ -2528,11 +2710,13 @@ async function doGenerate(prompt, params, c, round) {
   }
   if (!params.model) { showToast(tr("请先选择模型"), 'error'); return }
 
-  const imageTask = taskKindFor(params.model) === 'image'
+  const taskKind = taskKindFor(params.model)
+  const imageTask = taskKind === 'image'
+  const videoTask = taskKind === 'video'
   params = { ...params }
   // 兼容旧任务：辅助模型已由后端决定，旧配置不能影响生图或独立聊天。
   delete params.text_model
-  if (imageTask) delete params.reasoning_effort
+  if (imageTask || videoTask) delete params.reasoning_effort
 
   isRunning = true
   currentAbort = new AbortController()
@@ -2541,17 +2725,17 @@ async function doGenerate(prompt, params, c, round) {
     delete round.cancelled
     delete round.usage
     delete round.error
-    round.phase = imageTask ? 'planning' : 'chat'
+    round.phase = videoTask ? 'video' : imageTask ? 'planning' : 'chat'
     round.params = params
   }
   // 标记这一轮为「生成中」（发送入口已经设过，这里兜底，保证重试也有转圈）
-  setRunningRound(c, round, imageTask ? 'image' : 'chat')
+  setRunningRound(c, round, taskKind)
   renderChatView()
   const btn = document.getElementById('sendBtn')
   const icon = document.getElementById('sendIcon')
   btn.classList.add('is-running')
   icon.innerHTML = '<rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" />'
-  showToast(imageTask ? tr("已提交图片任务") : tr("已发送"), 'info')
+  showToast(videoTask ? tr("已提交视频任务") : imageTask ? tr("已提交图片任务") : tr("已发送"), 'info')
 
   const skel = document.getElementById('skeletonWrap')
   skel.style.display = 'block'
@@ -2560,13 +2744,13 @@ async function doGenerate(prompt, params, c, round) {
 
   // 放在 try 外面：catch 里体检上游时也要用（try 里声明的变量 catch 拿不到）
   let requestModel = params.model
-  let requestKind = imageTask ? 'images' : 'chat'
+  let requestKind = videoTask ? 'videos' : imageTask ? 'images' : 'chat'
   let awaitingUpstream = false
 
   try {
     const cred = { baseUrl: profile.url, apiKey: profile.key }
 
-    if (!imageTask) {
+    if (!imageTask && !videoTask) {
       // 选了文本模型又带了参考图：不是错误，按多模态问答处理（模型看着图回答）
       const chatRefs = await refsToDataUrls(round?.referenceImages || [], signal)
       setRunningRound(c, round, 'chat')   // 转圈文案切成「等待回复」
@@ -2577,7 +2761,7 @@ async function doGenerate(prompt, params, c, round) {
       let full = ''
       let reason = ''
       awaitingUpstream = true
-      for await (const { event, data } of ByChatAPI.streamChat(cred, {
+      for await (const { event, data } of ByCanvasAPI.streamChat(cred, {
         mode: chatModeFor(params.model),   // claude→messages / gpt→responses / 其他→auto
         model: params.model,
         reasoning_effort: params.reasoning_effort,
@@ -2610,11 +2794,41 @@ async function doGenerate(prompt, params, c, round) {
       await persistConversations(true)
       streamingText = ''
       streamingReasoning = ''
+    } else if (videoTask) {
+      // 视频直接用用户提示词，不走生图那套「辅助模型改写提示词」
+      const refs = await refsToDataUrls(round?.referenceImages || [], signal)
+      requestKind = 'videos'
+      awaitingUpstream = true
+      const result = await ByCanvasAPI.generateVideo(cred, { ...params, prompt, image: refs[0] || null }, signal)
+      awaitingUpstream = false
+      const ids = []
+      if (round) round.images = ids
+      for (const item of result.videos) {
+        // 视频也存本机 IndexedDB（会话里只记 id），服务器不落盘
+        const id = await ByCanvasDB.saveImageBlob(item.blob)
+        IMAGE_URLS.set(id, item.url)
+        ids.push(id)
+        count += 1
+      }
+      if (round) {
+        round.images = ids
+        round.mediaKind = 'video'
+        round.duration = `${((Date.now() - startedAt) / 1000).toFixed(1)} 秒`
+        round.params = params
+        round.usage = result.usage
+        delete round.error
+      }
+      signal.throwIfAborted()
+      if (!ids.length || result.errors?.length) {
+        const detail = result.errors?.filter(Boolean).join('；')
+        throw new Error(detail || tr("接口没有返回视频"))
+      }
+      await persistConversations(true)
     } else {
       const context = await imageContext(c, round, signal)
       requestKind = 'image-plan'
       awaitingUpstream = true
-      const plan = await ByChatAPI.planImage(cred, { ...context, prompt }, signal)
+      const plan = await ByCanvasAPI.planImage(cred, { ...context, prompt }, signal)
       awaitingUpstream = false
       signal.throwIfAborted()
       const files = plan.reference_images.map((id) => dataUrlToFile(context.images[id - 1], `ref-${id}`))
@@ -2630,15 +2844,15 @@ async function doGenerate(prompt, params, c, round) {
       // 图片接口仅接收自身参数；文本模型的推理设置不会混入图片请求。
       const imageParams = { ...params, prompt: plan.prompt }
       const result = files.length
-        ? await ByChatAPI.editImage(cred, imageParams, files, signal)
-        : await ByChatAPI.generateImage(cred, imageParams, signal)
+        ? await ByCanvasAPI.editImage(cred, imageParams, files, signal)
+        : await ByCanvasAPI.generateImage(cred, imageParams, signal)
       awaitingUpstream = false
 
       const ids = []
       if (round) round.images = ids
       for (const img of result.images) {
         // 图片只存本机 IndexedDB；会话里记 id，不记会失效的 blob: 地址
-        const id = await ByChatDB.saveImageBlob(img.blob)
+        const id = await ByCanvasDB.saveImageBlob(img.blob)
         IMAGE_URLS.set(id, img.url) // 本次会话直接复用，不用再读一次库
         ids.push(id)
         count += 1
@@ -2646,9 +2860,10 @@ async function doGenerate(prompt, params, c, round) {
 
       if (round) {
         round.images = ids
+        round.mediaKind = 'image'
         round.duration = `${((Date.now() - startedAt) / 1000).toFixed(1)} 秒`
         round.params = params // 存下来，「重新生成」要用同一套参数
-        round.usage = ByChatAPI.combineImageUsage(plan.usage, result.usage)
+        round.usage = ByCanvasAPI.combineImageUsage(plan.usage, result.usage)
         delete round.error
       }
       // 先保留已经成功的图片，再报告失败，不能丢掉已完成的结果。
@@ -2690,7 +2905,10 @@ async function doGenerate(prompt, params, c, round) {
     const msg = (err && err.message) ? err.message : tr("生成失败")
     // 中转站的模型列表会动态变化，选中的模型很可能这一刻已经不可用了
     let friendly = msg
-    if (/not supported|does not exist/i.test(msg)) {
+    // 但「生图前解析需求」那一步用的是后端自己挑的辅助文本模型，它失败跟用户选中的
+    // 模型无关，不能张冠李戴（2026-10-12：辅助模型被写死成上游没有的名字，于是所有
+    // 图像模型都被误报成「该模型当前不可用」，排查方向被带偏）。
+    if (err?.stage !== 'image-plan' && /not supported|does not exist/i.test(msg)) {
       friendly = tr("该模型当前不可用，请在设置里重新「获取模型」后再试")
     } else if (/NetworkError|Failed to fetch|Load failed|ERR_CONNECTION/i.test(msg)) {
       // 浏览器完全没拿到响应。最常见的原因其实有两个，别只报「后端没启动」：
@@ -2711,8 +2929,8 @@ async function doGenerate(prompt, params, c, round) {
       // 4xx 说明后端把源站的确凿结论原样传回来了（比如内容审核不通过），
       // 不是"连不上/说不清是谁的问题"，体检只会白白多等几十秒还给出无关的
       // 结论（比如探测用的测试图正常，反而让人误以为原始请求也该成功）。
-      const viaProxy = !window.ByChatAPI
-        || ByChatAPI.transportName({ baseUrl: profile.url }) === 'proxy'
+      const viaProxy = !window.ByCanvasAPI
+        || ByCanvasAPI.transportName({ baseUrl: profile.url }) === 'proxy'
       const isDefiniteOriginRejection = typeof err?.status === 'number' && err.status >= 400 && err.status < 500
       if (viaProxy && awaitingUpstream && requestKind !== 'image-plan' && !isDefiniteOriginRejection) {
         diagnoseInto(profile, requestModel, requestKind, round, c)
@@ -2806,9 +3024,12 @@ const SETTINGS_TABS = [
   { id: 'general', label: '习惯配置' },
 ]
 
-// 内部审核模型不作为用户模型展示；同时适用于新获取的列表和旧缓存。
+// 不作为用户模型展示的模型（内部审核模型 + 产品侧要求隐藏的三个）。
+// 同时适用于新获取的列表和旧缓存——旧缓存里可能还留着它们。
+// 与 api.js 的 HIDDEN_MODEL_IDS 保持同一份名单。
+const HIDDEN_MODEL_IDS = ['codex-auto-review', 'gpt-image-medium', 'gpt-reserve', 'grok-4.7-build-fast']
 function isVisibleModel(model) {
-  return String(model.id || '').trim().toLowerCase() !== 'codex-auto-review'
+  return !HIDDEN_MODEL_IDS.includes(String(model.id || '').trim().toLowerCase())
 }
 
 const S = {
@@ -2868,7 +3089,10 @@ function currentProfile() {
   return S.adding ? S.draft : activeProfile()
 }
 function profileName(profile) {
-  return profile.id === 'p1' && profile.name === '冰云默认' && !profile.nameEdited ? tr('冰云默认') : profile.name
+  // 兼容旧数据：历史默认名「默认配置」与现默认名「冰云默认」，在未手动改名时都按当前语言展示。
+  const isDefault = profile.id === 'p1' && !profile.nameEdited
+    && (profile.name === '冰云默认' || profile.name === '默认配置')
+  return isDefault ? tr('冰云默认') : profile.name
 }
 /* 注：syncComposerModels 已在「参数 pill」区统一实现（模型展示名称、保存 id） */
 
@@ -2953,7 +3177,7 @@ function tabHtml() {
 
 /** Key 一律打码显示。api.js 是 module，这里包一层给内联模板用。 */
 function maskKey(key) {
-  return (window.ByChatAPI && ByChatAPI.maskKey) ? ByChatAPI.maskKey(key) : ''
+  return (window.ByCanvasAPI && ByCanvasAPI.maskKey) ? ByCanvasAPI.maskKey(key) : ''
 }
 
 function renderApiTab() {
@@ -2978,7 +3202,7 @@ function renderApiTab() {
       </div>
       <div class="field">
         <label class="field-label">API URL</label>
-        <input class="field-input" value="${escapeHtml(p.url)}" placeholder="${DEFAULT_API_URL}" oninput="onProfileInput('url', this.value)" />
+        <input class="field-input" value="${escapeHtml(p.url)}" placeholder="${DEFAULT_API_URL}" oninput="onProfileInput('url', this.value)" onblur="normalizeProfileUrl(this)" />
       </div>
       <div class="field">
         <label class="field-label" for="cfgKey">API Key<span class="tag">${escapeHtml(tr("仅存本机"))}</span></label>
@@ -3099,6 +3323,17 @@ function startAddProfile() {
   }, 60)
 }
 function cancelAddProfile() { S.adding = false; S.draft = null; renderSettings() }
+/* API URL 未以 v1 结尾时自动补齐 /v1（失焦即生效，与请求层 normalizeBaseUrl 一致）。 */
+function normalizeProfileUrl(input) {
+  const p = currentProfile()
+  if (!p || !p.url || !p.url.trim()) return
+  const normalized = (window.ByCanvasAPI && ByCanvasAPI.normalizeBaseUrl)
+    ? ByCanvasAPI.normalizeBaseUrl(p.url) : p.url
+  if (normalized === p.url) return
+  p.url = normalized
+  if (input) input.value = normalized
+  if (!S.adding) scheduleSettingsSave()
+}
 async function saveProfile() {
   setKeyVisibility(false)
   const p = currentProfile()
@@ -3106,6 +3341,8 @@ async function saveProfile() {
   const dup = S.profiles.some((x) => x.name.trim() === p.name.trim() && x.id !== p.id)
   if (dup) { showToast(tr("配置名称已存在，请更换"), 'error'); return }
   if (!p.url.trim()) { showToast(tr("请填写 API URL"), 'error'); return }
+  // 未以 v1 结尾时自动补齐 /v1，保证保存下来的地址与请求层一致。
+  p.url = (window.ByCanvasAPI && ByCanvasAPI.normalizeBaseUrl) ? ByCanvasAPI.normalizeBaseUrl(p.url) : p.url
 
   if (S.adding) {
     S.profiles.push({ ...p, id: 'p' + crypto.randomUUID(), models: p.models || [] })
@@ -3140,7 +3377,7 @@ async function fetchModels() {
   renderSettings()
   showToast(tr("正在获取模型列表…"), 'info')
   try {
-    const list = await ByChatAPI.fetchModels({ baseUrl: p.url, apiKey: p.key })
+    const list = await ByCanvasAPI.fetchModels({ baseUrl: p.url, apiKey: p.key })
     p.models = list.filter(isVisibleModel).map((m) => ({ ...m, name: m.name || m.id }))
     p.fetched = true
     p.fetchedAt = Date.now()
@@ -3228,7 +3465,7 @@ function notifyTaskCompleted(c, imageCount) {
     const notification = new Notification(imageCount ? tr("图片已完成") : tr("回复已完成"), {
       body: imageCount ? tr("已完成 {0} 张图片，点击查看", imageCount) : tr("点击查看完整回复"),
       icon: 'assets/logo.png',
-      tag: `bychat-${c?.id ?? 'task'}`,
+      tag: `bycanvas-${c?.id ?? 'task'}`,
     })
     notification.onclick = () => {
       window.focus()
@@ -3267,7 +3504,7 @@ function toggleTheme() {
 }
 
 function toggleLanguage() {
-  ByImageI18n.setLanguage(ByImageI18n.language === 'en' ? 'zh-CN' : 'en')
+  ByCanvasI18n.setLanguage(ByCanvasI18n.language === 'en' ? 'zh-CN' : 'en')
 }
 
 function refreshLanguage() {
@@ -3333,17 +3570,17 @@ function refreshLanguage() {
   }
   syncLatestButton()
 }
-window.addEventListener('byimage:languagechange', refreshLanguage)
+window.addEventListener('bycanvas:languagechange', refreshLanguage)
 
 /* =====================================================
    启动
    ===================================================== */
 const promptInput = document.getElementById('promptInput')
-const promptEditor = window.ByChatComposer.createMarkdownEditor(promptInput, {
+const promptEditor = window.ByCanvasComposer.createMarkdownEditor(promptInput, {
   shouldSubmit: (event) => !event.shiftKey,
   onSubmit: () => { void handleSend() },
 })
-window.ByChatResize.createComposerResizer({
+window.ByCanvasResize.createComposerResizer({
   composer: document.getElementById('composer'),
   area: document.getElementById('composerArea'),
   handle: document.getElementById('composerResizeHandle'),
@@ -3500,23 +3737,23 @@ function reportPersistenceError(error, action = tr("保存本机数据")) {
 }
 
 async function persistConversations(strict = false) {
-  if (window.ByChatDB?.syncConversations && !window.ByChatStorageReady) return false
-  if (!window.ByChatDB) {
+  if (window.ByCanvasDB?.syncConversations && !window.ByCanvasStorageReady) return false
+  if (!window.ByCanvasDB) {
     const error = new Error(tr("本机数据库尚未加载"))
     if (strict) throw error
     return reportPersistenceError(error, tr("保存对话"))
   }
   const task = async () => {
     try {
-      const saveRows = typeof window.ByChatDB.syncConversations === 'function'
-        ? window.ByChatDB.syncConversations(conversations)
-        : Promise.all(conversations.map((c) => window.ByChatDB.putConversation(c)))
+      const saveRows = typeof window.ByCanvasDB.syncConversations === 'function'
+        ? window.ByCanvasDB.syncConversations(conversations)
+        : Promise.all(conversations.map((c) => window.ByCanvasDB.putConversation(c)))
       const [removedImages] = await Promise.all([
         saveRows,
-        window.ByChatDB.setSetting('groups', groupDefs),
-        window.ByChatDB.setSetting('activeConversationId', activeId),
+        window.ByCanvasDB.setSetting('groups', groupDefs),
+        window.ByCanvasDB.setSetting('activeConversationId', activeId),
       ])
-      if (window.ByChatDB.syncConversations) {
+      if (window.ByCanvasDB.syncConversations) {
         for (const id of removedImages || []) {
           const url = IMAGE_URLS.get(id)
           if (url) URL.revokeObjectURL(url)
@@ -3529,7 +3766,7 @@ async function persistConversations(strict = false) {
       return reportPersistenceError(error, tr("保存对话"))
     }
   }
-  const state = window.__ByChatPersistence || (window.__ByChatPersistence = {
+  const state = window.__ByCanvasPersistence || (window.__ByCanvasPersistence = {
     conversationQueue: Promise.resolve(),
     settingsQueue: Promise.resolve(),
   })
@@ -3539,14 +3776,14 @@ async function persistConversations(strict = false) {
 }
 
 async function persistActiveConversation(strict = false) {
-  if (window.ByChatDB?.syncConversations && !window.ByChatStorageReady) return false
-  if (!window.ByChatDB) {
+  if (window.ByCanvasDB?.syncConversations && !window.ByCanvasStorageReady) return false
+  if (!window.ByCanvasDB) {
     const error = new Error(tr("本机数据库尚未加载"))
     if (strict) throw error
     return reportPersistenceError(error, tr("保存当前对话"))
   }
   try {
-    await window.ByChatDB.setSetting('activeConversationId', activeId)
+    await window.ByCanvasDB.setSetting('activeConversationId', activeId)
     return true
   } catch (error) {
     if (strict) throw error
@@ -3555,8 +3792,8 @@ async function persistActiveConversation(strict = false) {
 }
 
 async function persistSettings(strict = false) {
-  if (window.ByChatDB?.syncConversations && !window.ByChatSettingsReady) return false
-  if (!window.ByChatDB) {
+  if (window.ByCanvasDB?.syncConversations && !window.ByCanvasSettingsReady) return false
+  if (!window.ByCanvasDB) {
     const error = new Error(tr("本机数据库尚未加载"))
     if (strict) throw error
     return reportPersistenceError(error, tr("保存设置"))
@@ -3579,8 +3816,8 @@ async function persistSettings(strict = false) {
   }
   const task = async () => {
     try {
-      if (typeof window.ByChatDB.setSettings === 'function') await window.ByChatDB.setSettings(values)
-      else await Promise.all(Object.entries(values).map(([key, value]) => window.ByChatDB.setSetting(key, value)))
+      if (typeof window.ByCanvasDB.setSettings === 'function') await window.ByCanvasDB.setSettings(values)
+      else await Promise.all(Object.entries(values).map(([key, value]) => window.ByCanvasDB.setSetting(key, value)))
       return true
     } catch (error) {
       if (strict) throw error
@@ -3592,9 +3829,9 @@ async function persistSettings(strict = false) {
 
 let draftSaveTimer = null
 async function persistComposerDraft(strict = false) {
-  if (window.ByChatDB?.syncConversations && !window.ByChatStorageReady) return false
+  if (window.ByCanvasDB?.syncConversations && !window.ByCanvasStorageReady) return false
   clearTimeout(draftSaveTimer)
-  if (!window.ByChatDB) {
+  if (!window.ByCanvasDB) {
     const error = new Error(tr("本机数据库尚未加载"))
     if (strict) throw error
     return reportPersistenceError(error, tr("保存输入草稿"))
@@ -3603,12 +3840,12 @@ async function persistComposerDraft(strict = false) {
     if (G.persistInputOnRestart) {
       const draft = { prompt: promptInput.value, images: [...inputImages] }
       const snapshot = JSON.stringify(draft)
-      if (window.__ByChatDraftSnapshot === snapshot) return true
-      await ByChatDB.setSetting('composerDraft', draft)
-      window.__ByChatDraftSnapshot = snapshot
+      if (window.__ByCanvasDraftSnapshot === snapshot) return true
+      await ByCanvasDB.setSetting('composerDraft', draft)
+      window.__ByCanvasDraftSnapshot = snapshot
     } else {
-      await ByChatDB.deleteSetting('composerDraft')
-      window.__ByChatDraftSnapshot = null
+      await ByCanvasDB.deleteSetting('composerDraft')
+      window.__ByCanvasDraftSnapshot = null
     }
     return true
   } catch (error) {
@@ -3630,7 +3867,7 @@ promptInput.addEventListener('input', scheduleDraftSave)
 function flushLocalState() {
   clearTimeout(settingsSaveTimer)
   void persistSettings()
-  if (!window.ByChatStorageReady) return
+  if (!window.ByCanvasStorageReady) return
   clearTimeout(draftSaveTimer)
   void persistComposerDraft()
   void persistConversations()
@@ -3646,17 +3883,17 @@ function scheduleStorageRefresh() {
   storageRefreshTimer = setTimeout(refreshStorageSnapshot, 120)
 }
 async function refreshStorageSnapshot() {
-  const busy = () => !window.ByChatStorageReady || isRunning || S.open || SZ.open || renamingId != null
+  const busy = () => !window.ByCanvasStorageReady || isRunning || S.open || SZ.open || renamingId != null
     || renamingGroupKey != null || document.activeElement?.matches('input, textarea, [contenteditable="true"]')
   if (busy()) { storageRefreshTimer = setTimeout(refreshStorageSnapshot, 1000); return }
   const state = () => JSON.stringify([conversations, groupDefs, S.profiles, S.activeId, G, currentModel, currentSize, darkMode])
   try {
     if (!await persistSettings() || !await persistConversations()) return
     const before = state()
-    const snapshot = await ByChatDB.readSnapshot()
+    const snapshot = await ByCanvasDB.readSnapshot()
     if (busy() || before !== state()) { scheduleStorageRefresh(); return }
     const saved = snapshot.settings
-    ByChatDB.rememberSnapshot(snapshot)
+    ByCanvasDB.rememberSnapshot(snapshot)
     conversations = snapshot.rows
     if (!conversations.some((c) => c.id === activeId)) activeId = conversations[0]?.id ?? null
     conversations.forEach((c) => { c.active = c.id === activeId })
@@ -3677,13 +3914,13 @@ async function refreshStorageSnapshot() {
     renderList(); syncTitle(); renderChatView(); syncComposerModels(); refreshSizePill()
   } catch (error) { reportPersistenceError(error) }
 }
-window.addEventListener('bychat:storage', scheduleStorageRefresh)
+window.addEventListener('bycanvas:storage', scheduleStorageRefresh)
 window.addEventListener('focus', scheduleStorageRefresh)
 
 async function restoreState() {
-  if (!window.ByChatDB) return
+  if (!window.ByCanvasDB) return
   try {
-    const saved = await window.ByChatDB.getSetting('S', null)
+    const saved = await window.ByCanvasDB.getSetting('S', null)
     if (saved) {
       if (Array.isArray(saved.profiles) && saved.profiles.length) {
         S.profiles = saved.profiles
@@ -3703,45 +3940,56 @@ async function restoreState() {
       if (themeButton) themeButton.title = darkMode ? tr("切换到浅色模式") : tr("切换到深色模式")
     }
 
-    const g = await window.ByChatDB.getSetting('G', null)
+    const g = await window.ByCanvasDB.getSetting('G', null)
     if (g) Object.assign(G, generalSettingsOf(g))
 
-    const m = await window.ByChatDB.getSetting('model', '')
+    const m = await window.ByCanvasDB.getSetting('model', '')
     if (m) currentModel = m
-    const sz = await window.ByChatDB.getSetting('size', '')
+    const sz = await window.ByCanvasDB.getSetting('size', '')
     if (sz) currentSize = sz
-    window.ByChatSettingsReady = true
+    window.ByCanvasSettingsReady = true
 
-    const savedConvs = await window.ByChatDB.listConversations()
-    conversations = restoreExampleConversations(savedConvs, window.ByChatDB.deletedExampleIds?.() || [])
-    const lastActiveId = await window.ByChatDB.getSetting('activeConversationId', null)
+    const savedConvs = await window.ByCanvasDB.listConversations()
+    // 演示集换版后，旧版留下的删除墓碑不再适用，先清掉再恢复。
+    const demoSet = await window.ByCanvasDB.getSetting('exampleSetVersion', null)
+    const staleDemoSet = demoSet !== EXAMPLE_SET_VERSION
+    if (staleDemoSet) await window.ByCanvasDB.clearExampleTombstones?.()
+    conversations = restoreExampleConversations(
+      savedConvs,
+      staleDemoSet ? [] : (window.ByCanvasDB.deletedExampleIds?.() || []),
+      window.ByCanvasDB.storedConversationIds?.() || [],
+    )
+    if (staleDemoSet) await window.ByCanvasDB.setSetting('exampleSetVersion', EXAMPLE_SET_VERSION)
+    const lastActiveId = await window.ByCanvasDB.getSetting('activeConversationId', null)
     activeId = conversations.find((c) => c.id === lastActiveId)?.id
       ?? conversations.find((c) => c.active)?.id
       ?? conversations[0]?.id ?? null
     conversations.forEach((c) => (c.active = c.id === activeId))
-    nextId = Math.max(nextId, ...conversations.map((c) => Number(c.id) + 1).filter(Number.isFinite))
+    nextId = Math.max(nextId,
+      ...conversations.map((c) => Number(c.id) + 1).filter(Number.isFinite),
+      ...(window.ByCanvasDB.storedConversationIds?.() || []).map((id) => Number(id) + 1).filter(Number.isFinite))
 
-    const savedGroups = await ByChatDB.getSetting('groups', null)
+    const savedGroups = await ByCanvasDB.getSetting('groups', null)
     groupDefs = [
       ...DEFAULT_GROUPS.map((group) => ({ ...group, ...(Array.isArray(savedGroups) ? savedGroups.find((item) => item.key === group.key) : {}) })),
       ...(Array.isArray(savedGroups) ? savedGroups.filter((group) => !DEFAULT_GROUPS.some((item) => item.key === group.key)) : []),
     ]
     groupSeq = Math.max(0, ...groupDefs.map((group) => /^g\d+$/.test(group.key) ? Number(group.key.slice(1)) : 0))
     if (G.persistInputOnRestart) {
-      const draft = await ByChatDB.getSetting('composerDraft', null)
+      const draft = await ByCanvasDB.getSetting('composerDraft', null)
       if (draft && typeof draft.prompt === 'string') {
         promptInput.value = draft.prompt
         inputImages = Array.isArray(draft.images) ? draft.images.slice(0, MAX_INPUT_IMAGES) : []
         renderInputImages()
       }
     } else {
-      await ByChatDB.getSetting('composerDraft', null)
-      await ByChatDB.deleteSetting('composerDraft')
+      await ByCanvasDB.getSetting('composerDraft', null)
+      await ByCanvasDB.deleteSetting('composerDraft')
     }
     // 为旧版缓存补齐模型档位，无需用户再次填写密钥。
-    window.__ByChatDraftSnapshot = JSON.stringify({ prompt: promptInput.value, images: [...inputImages] })
-    if (window.ByChatAPI?.withModelCapabilities) {
-      for (const p of S.profiles) p.models = await ByChatAPI.withModelCapabilities(p.models || [])
+    window.__ByCanvasDraftSnapshot = JSON.stringify({ prompt: promptInput.value, images: [...inputImages] })
+    if (window.ByCanvasAPI?.withModelCapabilities) {
+      for (const p of S.profiles) p.models = await ByCanvasAPI.withModelCapabilities(p.models || [])
     }
 
     renderList()
@@ -3750,7 +3998,7 @@ async function restoreState() {
     renderChatView()
     syncComposerModels()
     refreshSizePill()
-    window.ByChatStorageReady = true
+    window.ByCanvasStorageReady = true
     await persistConversations(true)
     if (typeof persistSettings === 'function') await persistSettings(true)
 
@@ -3796,7 +4044,7 @@ async function probeBackend() {
     const port = location.port || ''
     el.textContent =
       tr("⚠️ 连不上后端：{0} 没有响应（{1}）\n", location.origin, err.message)
-      + tr("当前页面端口是 {0}。确认后端在跑：sudo systemctl status bychat-backend\n", port || tr("(未指定端口)"))
+      + tr("当前页面端口是 {0}。确认后端在跑：sudo systemctl status bycanvas-backend\n", port || tr("(未指定端口)"))
       + tr('① 试试直接用 IP 打开本页（localhost 可能被解析成了 IPv6，而后端只听 IPv4）\n')
       + tr('② 如果只有 Chrome 能开：多半是系统代理拦了 localhost —— ')
       + tr('Windows 设置 → 网络和 Internet → 代理 → 关掉「使用代理服务器」，')
@@ -3825,18 +4073,18 @@ async function probeBackend() {
  *   ?transport=auto     改回自动
  */
 function applyTransportOverride() {
-  if (!window.ByChatAPI) return
+  if (!window.ByCanvasAPI) return
   const qs = new URLSearchParams(location.search).get('transport')
   if (qs) {
-    if (qs === 'auto') localStorage.removeItem('bychat.transport')
-    else localStorage.setItem('bychat.transport', qs)
+    if (qs === 'auto') localStorage.removeItem('bycanvas.transport')
+    else localStorage.setItem('bycanvas.transport', qs)
   }
-  ByChatAPI.setTransportOverride(localStorage.getItem('bychat.transport') || '')
+  ByCanvasAPI.setTransportOverride(localStorage.getItem('bycanvas.transport') || '')
 }
 
 /* module 在 DOMContentLoaded 前完成，不必等待示例图片和字体加载完再恢复对话。 */
 window.addEventListener('DOMContentLoaded', applyTransportOverride)
 window.addEventListener('DOMContentLoaded', () => {
-  window.ByChatReady = restoreState()
+  window.ByCanvasReady = restoreState()
 })
 window.addEventListener('DOMContentLoaded', probeBackend)

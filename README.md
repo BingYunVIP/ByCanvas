@@ -1,54 +1,40 @@
-# ByChat_IMG
+# ByCanvas
 
 <p align="center">
-  <img src="frontend/assets/logo.png" alt="ByImage Logo" width="120">
+  <img src="frontend/assets/logo.png" alt="ByCanvas" width="120">
 </p>
 
 <p align="center">
-  <a href="https://img.bingyun.vip">在线体验：https://img.bingyun.vip</a>
+  <a href="https://cvs.bingyun.vip">https://cvs.bingyun.vip</a>
 </p>
-
-冰云生图（ByImage）是一个集 AI 对话、图片生成和图片编辑于一体的网页应用。
 
 ## 功能
 
-- AI 对话、图片生成与图片编辑
-- API Key、图片和对话保存在用户浏览器本地
-- 支持多标签页数据同步和刷新恢复
+- AI 对话：流式输出，支持推理过程折叠
+- 图片生成：文生图
+- 图片编辑：上传参考图改图
+- 视频生成：文生视频
+- 模型列表每次请求实时从上游拉取；推理档位、能否看图、视频时长与清晰度自动同步
+- 提示词支持 Markdown 排版
 - 支持中文、英文和深色模式
 - 前后端同源运行，无需单独构建前端
-- systemd 开机自启、失败重启、版本回滚和健康检查
+- API Key、对话、图片、视频只保存在浏览器本地，服务器不落盘
 
-## Linux 部署
+## 部署
 
-支持 Ubuntu 和 Debian。项目可以放在任意可读取目录，包括带空格或中文的路径。
-
-```bash
-git clone https://github.com/BingYunVIP/ByChat_IMG.git
-cd ByChat_IMG
-```
-
-已经进入 root 账号时（命令提示符通常以 `#` 结尾）：
+支持 Ubuntu / Debian 等 Linux 发行版，不使用 Docker。
 
 ```bash
-bash deploy.sh install
+git clone https://github.com/BingYunVIP/ByCanvas.git
+cd ByCanvas
+sudo bash ByCanvas.sh
 ```
 
-普通账号且系统安装了 `sudo` 时：
+脚本依次完成：检查系统环境 → 安装缺失的工具（python3、python3-venv、curl、uv）→
+询问是否创建系统服务（默认 Y，systemd 开机自启 + 失败自启 + 后台常驻）→
+打印启动日志 → 输出访问地址。
 
-```bash
-sudo bash deploy.sh install
-```
-
-系统没有 `sudo` 时，先切换到 root，再进入项目目录部署：
-
-```bash
-su - root
-cd /实际路径/ByChat_IMG
-bash deploy.sh install
-```
-
-默认监听 `7400` 端口：
+默认监听 7400 端口：
 
 ```text
 http://服务器IP:7400
@@ -57,50 +43,31 @@ http://服务器IP:7400
 自定义端口或运行用户：
 
 ```bash
-bash deploy.sh install --port 8000
-bash deploy.sh install --user appuser
+sudo bash ByCanvas.sh install --port 8000 --user appuser
 ```
 
-## 服务管理
+### 服务管理
 
 ```bash
-bash deploy.sh status
-bash deploy.sh logs
-bash deploy.sh restart
-bash deploy.sh update
-bash deploy.sh rollback
-bash deploy.sh doctor
-bash deploy.sh uninstall
+sudo bash ByCanvas.sh status      # 运行状态
+sudo bash ByCanvas.sh logs        # 查看日志
+sudo bash ByCanvas.sh restart     # 重启
+sudo bash ByCanvas.sh stop        # 停止
+sudo bash ByCanvas.sh uninstall   # 停止并移除系统服务
+sudo bash ByCanvas.sh doctor      # 只做环境体检，不改动系统
+bash ByCanvas.sh help             # 查看全部参数
 ```
 
-以上部署和管理命令需要 root 权限。普通账号可在命令前加 `sudo`；没有 `sudo` 的系统请先使用 `su - root`。
+### 日志
 
-查看全部参数：
+部署脚本的日志按 `[环境]` `[依赖]` `[服务]` `[启动]` `[访问]` 分类，同时写入
+`.deploy/deploy-YYYYMMDD.log`。
 
-```bash
-bash deploy.sh help
-```
-
-## 本地运行
+后端日志按链路分类（`[视频]` `[生图]` `[聊天]` `[模型]` `[体检]` `[服务]` `[启动]`），
+问题行带 `[WARN]` / `[ERROR]` 前缀：
 
 ```bash
-bash tools/start_backend.sh
-```
-
-然后访问 `http://127.0.0.1:7400`。
-
-## 配置
-
-首次部署会根据 `backend/.env.example` 创建本机配置 `backend/.env`。该文件不会提交到 Git。
-
-网站不设置统一访问密码。每位用户在自己的浏览器中填写上游 API Key，服务器只在当前请求中使用，不保存用户的 API Key、图片或对话。
-
-浏览器数据按协议、域名和端口隔离。更换访问地址后，原地址中的本地数据不会自动迁移。
-
-## 测试
-
-```bash
-cd frontend && node --test tests/*.test.mjs
-cd ../backend && .venv/bin/python -m pytest -q
-cd .. && python3 -m unittest -v tools.tests.test_deploy
+sudo journalctl -u bycanvas-backend -f                                # 全量
+sudo journalctl -u bycanvas-backend -f | grep '\[视频\]'               # 只看某条链路
+sudo journalctl -u bycanvas-backend -f | grep -E '\[(WARN|ERROR)\]'   # 只看问题行
 ```

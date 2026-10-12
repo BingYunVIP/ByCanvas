@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 在 WSL 里启动 ByChat&IMG 后端（纯 Linux，不依赖 Windows 侧的任何进程）
+# 在 WSL 里启动 ByCanvas 后端（纯 Linux，不依赖 Windows 侧的任何进程）
 #
 # ⚠️ 这个脚本是**前台**运行：终端一关，后端就死。
 #    要长期挂着（以及部署到 VPS），请用 systemd：

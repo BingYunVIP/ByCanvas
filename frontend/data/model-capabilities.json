@@ -1,9 +1,11 @@
 {
-  "verifiedAt": "2026-09-20",
+  "verifiedAt": "2026-10-12",
   "sources": {
     "reasoningEfforts": "OpenRouter /api/v1/models → reasoning.supported_efforts",
     "vision": "OpenRouter /api/v1/models → architecture.input_modalities",
-    "qualityOptions": "官方公开档位（OpenRouter 不提供图片参数，见 tools/sync_model_capabilities.py）"
+    "kind": "OpenRouter /api/v1/models → architecture.output_modalities",
+    "qualityOptions": "官方公开档位（OpenRouter 不提供图片参数，见 tools/sync_model_capabilities.py）",
+    "videoParameters": "xAI 视频接口公开规格（OpenRouter 尚无视频模型，见 tools/sync_model_capabilities.py）"
   },
   "models": {
     "dall-e-2": {
@@ -23,7 +25,8 @@
         "background": false
       },
       "vision": null,
-      "reasoningEfforts": []
+      "reasoningEfforts": [],
+      "kind": "image"
     },
     "dall-e-3": {
       "qualityOptions": [
@@ -43,81 +46,155 @@
         "background": false
       },
       "vision": null,
-      "reasoningEfforts": []
+      "reasoningEfforts": [],
+      "kind": "image"
+    },
+    "google/gemini-2.5-flash-image": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "kind": "image",
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "google/gemini-3-pro-image": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "kind": "image",
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningUnknownEfforts": true,
+      "reasoningMandatory": true
+    },
+    "google/gemini-3-pro-image-preview": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "kind": "image",
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningUnknownEfforts": true,
+      "reasoningMandatory": true
+    },
+    "google/gemini-3.1-flash-image": {
+      "reasoningEfforts": [
+        "minimal",
+        "high"
+      ],
+      "vision": true,
+      "kind": "image",
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "google/gemini-3.1-flash-image-preview": {
+      "reasoningEfforts": [
+        "minimal",
+        "high"
+      ],
+      "vision": true,
+      "kind": "image",
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "google/gemini-3.1-flash-lite-image": {
+      "reasoningEfforts": [
+        "minimal",
+        "high"
+      ],
+      "vision": true,
+      "kind": "image",
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "google/gemini-nano-banana-2.1": {
+      "reasoningEfforts": [
+        "minimal",
+        "high"
+      ],
+      "vision": true,
+      "kind": "image",
+      "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-3.5-turbo": {
       "reasoningEfforts": [],
       "vision": false,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-3.5-turbo-0613": {
       "reasoningEfforts": [],
       "vision": false,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-3.5-turbo-16k": {
       "reasoningEfforts": [],
       "vision": false,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-3.5-turbo-instruct": {
       "reasoningEfforts": [],
       "vision": false,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-4": {
       "reasoningEfforts": [],
       "vision": false,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-4-turbo": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-4.1": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-4.1-mini": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-4.1-nano": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-4o": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-4o-2024-05-13": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-4o-2024-08-06": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-4o-2024-11-20": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-4o-mini": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-4o-mini-2024-07-18": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5": {
@@ -128,12 +205,14 @@
         "high"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
     },
     "gpt-5-image": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "image",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningUnknownEfforts": true,
       "reasoningMandatory": true
@@ -141,6 +220,7 @@
     "gpt-5-image-mini": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "image",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningUnknownEfforts": true,
       "reasoningMandatory": true
@@ -153,6 +233,7 @@
         "high"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
     },
@@ -164,6 +245,7 @@
         "high"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
     },
@@ -172,6 +254,7 @@
         "high"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
     },
@@ -183,6 +266,7 @@
         "high"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5.1-codex": {
@@ -192,6 +276,7 @@
         "high"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
     },
@@ -203,6 +288,7 @@
         "xhigh"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
     },
@@ -213,6 +299,7 @@
         "high"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5.2": {
@@ -224,11 +311,13 @@
         "xhigh"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5.2-chat": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5.2-codex": {
@@ -239,6 +328,7 @@
         "xhigh"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
     },
@@ -249,6 +339,7 @@
         "xhigh"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
     },
@@ -261,6 +352,7 @@
         "xhigh"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5.4": {
@@ -272,6 +364,7 @@
         "xhigh"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5.4-image-2": {
@@ -283,6 +376,7 @@
         "xhigh"
       ],
       "vision": true,
+      "kind": "image",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5.4-mini": {
@@ -294,6 +388,7 @@
         "xhigh"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5.4-nano": {
@@ -305,6 +400,7 @@
         "xhigh"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5.4-pro": {
@@ -314,6 +410,7 @@
         "xhigh"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
     },
@@ -326,6 +423,7 @@
         "xhigh"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5.5-pro": {
@@ -335,6 +433,7 @@
         "xhigh"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
     },
@@ -348,6 +447,7 @@
         "max"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5.6-luna-pro": {
@@ -360,6 +460,7 @@
         "max"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5.6-sol": {
@@ -372,6 +473,7 @@
         "max"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5.6-sol-pro": {
@@ -384,6 +486,7 @@
         "max"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5.6-terra": {
@@ -396,6 +499,7 @@
         "max"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-5.6-terra-pro": {
@@ -408,6 +512,7 @@
         "max"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-6-astra": {
@@ -419,6 +524,7 @@
         "max"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
     },
@@ -431,22 +537,104 @@
         "max"
       ],
       "vision": true,
+      "kind": "chat",
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-6-luna": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "vision": true,
+      "kind": "chat",
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-6-luna-pro": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "vision": true,
+      "kind": "chat",
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-6-sol": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "vision": true,
+      "kind": "chat",
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-6-sol-pro": {
+      "reasoningEfforts": [
+        "none",
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "vision": true,
+      "kind": "chat",
+      "source": "https://openrouter.ai/api/v1/models"
+    },
+    "gpt-6.1-sol": {
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "vision": true,
+      "kind": "chat",
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningMandatory": true
+    },
+    "gpt-6.1-sol-pro": {
+      "reasoningEfforts": [
+        "low",
+        "medium",
+        "high",
+        "xhigh",
+        "max"
+      ],
+      "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
     },
     "gpt-audio": {
       "reasoningEfforts": [],
       "vision": false,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-audio-mini": {
       "reasoningEfforts": [],
       "vision": false,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-chat-latest": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models"
     },
     "gpt-image-1": {
@@ -482,7 +670,8 @@
         }
       },
       "vision": null,
-      "reasoningEfforts": []
+      "reasoningEfforts": [],
+      "kind": "image"
     },
     "gpt-image-1-mini": {
       "qualityOptions": [
@@ -517,7 +706,8 @@
         }
       },
       "vision": null,
-      "reasoningEfforts": []
+      "reasoningEfforts": [],
+      "kind": "image"
     },
     "gpt-image-1.5": {
       "qualityOptions": [
@@ -552,7 +742,8 @@
         }
       },
       "vision": null,
-      "reasoningEfforts": []
+      "reasoningEfforts": [],
+      "kind": "image"
     },
     "gpt-image-2": {
       "qualityOptions": [
@@ -580,7 +771,8 @@
         }
       },
       "vision": null,
-      "reasoningEfforts": []
+      "reasoningEfforts": [],
+      "kind": "image"
     },
     "gpt-image-2.5-flare": {
       "qualityOptions": [
@@ -610,7 +802,8 @@
         }
       },
       "vision": null,
-      "reasoningEfforts": []
+      "reasoningEfforts": [],
+      "kind": "image"
     },
     "gpt-image-2.5-sunburst": {
       "qualityOptions": [
@@ -640,7 +833,8 @@
         }
       },
       "vision": null,
-      "reasoningEfforts": []
+      "reasoningEfforts": [],
+      "kind": "image"
     },
     "gpt-oss-120b": {
       "reasoningEfforts": [
@@ -649,6 +843,7 @@
         "high"
       ],
       "vision": false,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
     },
@@ -659,37 +854,165 @@
         "high"
       ],
       "vision": false,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
     },
     "gpt-oss-safeguard-20b": {
       "reasoningEfforts": [],
       "vision": false,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningUnknownEfforts": true,
       "reasoningMandatory": true
     },
+    "grok-imagine-video": {
+      "kind": "video",
+      "videoParameters": {
+        "duration": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15"
+        ],
+        "resolution": [
+          "480p",
+          "720p"
+        ],
+        "aspectRatio": [
+          "1:1",
+          "16:9",
+          "9:16",
+          "4:3",
+          "3:4",
+          "3:2",
+          "2:3",
+          "21:9",
+          "5:2"
+        ]
+      },
+      "source": "https://docs.x.ai/developers/model-capabilities/video/overview",
+      "vision": null,
+      "reasoningEfforts": []
+    },
+    "grok-imagine-video-1.5": {
+      "kind": "video",
+      "videoParameters": {
+        "duration": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15"
+        ],
+        "resolution": [
+          "480p",
+          "720p",
+          "1080p"
+        ],
+        "aspectRatio": [
+          "1:1",
+          "16:9",
+          "9:16",
+          "4:3",
+          "3:4",
+          "3:2",
+          "2:3",
+          "21:9",
+          "5:2"
+        ]
+      },
+      "source": "https://docs.x.ai/developers/model-capabilities/video/overview",
+      "vision": null,
+      "reasoningEfforts": []
+    },
+    "grok-imagine-video-1.5-lite": {
+      "kind": "video",
+      "videoParameters": {
+        "duration": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15"
+        ],
+        "resolution": [
+          "480p",
+          "720p",
+          "1080p"
+        ],
+        "aspectRatio": [
+          "1:1",
+          "16:9",
+          "9:16",
+          "4:3",
+          "3:4",
+          "3:2",
+          "2:3",
+          "21:9",
+          "5:2"
+        ]
+      },
+      "source": "https://docs.x.ai/developers/model-capabilities/video/overview",
+      "vision": null,
+      "reasoningEfforts": []
+    },
     "o1": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningUnknownEfforts": true
     },
     "o1-pro": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningUnknownEfforts": true
     },
     "o3": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningUnknownEfforts": true
     },
     "o3-mini": {
       "reasoningEfforts": [],
       "vision": false,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningUnknownEfforts": true
     },
@@ -698,18 +1021,21 @@
         "high"
       ],
       "vision": false,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
     },
     "o3-pro": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningUnknownEfforts": true
     },
     "o4-mini": {
       "reasoningEfforts": [],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningUnknownEfforts": true
     },
@@ -718,13 +1044,36 @@
         "high"
       ],
       "vision": true,
+      "kind": "chat",
       "source": "https://openrouter.ai/api/v1/models",
       "reasoningMandatory": true
+    },
+    "openrouter/auto": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "kind": "image",
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningUnknownEfforts": true
+    },
+    "openrouter/auto-beta": {
+      "reasoningEfforts": [],
+      "vision": true,
+      "kind": "image",
+      "source": "https://openrouter.ai/api/v1/models",
+      "reasoningUnknownEfforts": true
     }
   },
   "aliases": {
     "gpt-image-2-2026-04-21": "gpt-image-2",
     "gpt-image-2.5-flare-2026-09-08": "gpt-image-2.5-flare",
-    "gpt-image-2.5-sunburst-2026-09-08": "gpt-image-2.5-sunburst"
+    "gpt-image-2.5-sunburst-2026-09-08": "gpt-image-2.5-sunburst",
+    "grok-imagine-video-1.5-preview": "grok-imagine-video-1.5",
+    "gemini-2.5-flash-image": "google/gemini-2.5-flash-image",
+    "gemini-3-pro-image": "google/gemini-3-pro-image",
+    "gemini-3-pro-image-preview": "google/gemini-3-pro-image-preview",
+    "gemini-3.1-flash-image": "google/gemini-3.1-flash-image",
+    "gemini-3.1-flash-image-preview": "google/gemini-3.1-flash-image-preview",
+    "gemini-3.1-flash-lite-image": "google/gemini-3.1-flash-lite-image",
+    "gemini-nano-banana-2.1": "google/gemini-nano-banana-2.1"
   }
 }

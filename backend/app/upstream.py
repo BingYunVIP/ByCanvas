@@ -116,8 +116,8 @@ async def request_with_gateway_retry(
         if attempt >= max_attempts or remaining < min_remaining + delay:
             return resp, attempt
         await resp.aread()  # 把这次的响应体读完/连接释放干净，再发下一次
-        applog.log(
-            '⚠️ %s：上游返回 HTTP %d 且没有 x-request-id（网关层失败，源站大概率'
+        applog.warn(
+            '%s：上游返回 HTTP %d 且没有 x-request-id（网关层失败，源站大概率'
             '没收到、或者还在处理），%.1fs 后自动重试第 %d 次（预算还剩 %.0fs）',
             label, resp.status_code, delay, attempt + 1, remaining,
         )
@@ -196,7 +196,7 @@ def summarize_usage(mode: str, raw: dict | None) -> dict:
     if not isinstance(raw, dict):
         return empty
 
-    if mode in ('responses', 'images_generate', 'images_edit'):
+    if mode in ('responses', 'images_generate', 'images_edit', 'videos_generate'):
         details = raw.get('input_tokens_details') or {}
         return {
             'input_tokens': raw.get('input_tokens'),
