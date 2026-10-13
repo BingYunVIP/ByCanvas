@@ -46,6 +46,16 @@ http://服务器IP:7400
 sudo bash ByCanvas.sh install --port 8000 --user appuser
 ```
 
+### 更新
+
+```bash
+cd ByCanvas
+sudo bash ByCanvas.sh update      # 拉取最新代码并重新部署
+sudo bash ByCanvas.sh rollback    # 回滚到上一次 update 之前的版本
+```
+
+`update` 先记录当前版本，再拉取代码并重新部署；更新后服务不正常时可以 `rollback` 退回。
+
 ### 服务管理
 
 ```bash
