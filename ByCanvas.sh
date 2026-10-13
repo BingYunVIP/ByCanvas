@@ -15,6 +15,8 @@
 #    bash ByCanvas.sh install            # 部署并启动
 #    bash ByCanvas.sh install --port 8080 --user appuser
 #    bash ByCanvas.sh install --yes      # 全部取默认值，不交互（适合自动化）
+#    bash ByCanvas.sh update             # 拉取最新代码并重新部署（VPS 更新用这个）
+#    bash ByCanvas.sh rollback           # 回滚到上一次 update 之前的版本
 #    bash ByCanvas.sh start | stop | restart | status | logs | uninstall
 #    bash ByCanvas.sh doctor             # 只做环境体检，不改动系统
 #    bash ByCanvas.sh help
@@ -49,6 +51,10 @@ CONF_FILE="$STATE_DIR/bycanvas.conf"
 PID_FILE="$STATE_DIR/bycanvas.pid"
 NOUP_LOG="$STATE_DIR/backend.log"
 SCRIPT_LOG="$STATE_DIR/deploy-$(date +%Y%m%d).log"
+# 版本记录：update 前把当前 commit 写进 PREV_REV_FILE，成功后写进 REV_FILE。
+# rollback 读 PREV_REV_FILE 决定回到哪个版本。
+REV_FILE="$STATE_DIR/current-rev"
+PREV_REV_FILE="$STATE_DIR/previous-rev"
 
 PORT="$DEFAULT_PORT"; PORT_GIVEN=0
 BIND="auto";         BIND_GIVEN=0
@@ -97,7 +103,7 @@ usage() {
 parse_args() {
   while (( $# )); do
     case "$1" in
-      install|start|stop|restart|status|logs|uninstall|doctor|help) ACTION="$1"; shift ;;
+      install|update|rollback|start|stop|restart|status|logs|uninstall|doctor|help) ACTION="$1"; shift ;;
       --port) PORT="${2:-}"; PORT_GIVEN=1; shift 2 ;;
       --port=*) PORT="${1#*=}"; PORT_GIVEN=1; shift ;;
       --host) BIND="${2:-}"; BIND_GIVEN=1; shift 2 ;;
@@ -571,6 +577,7 @@ cmd_install() {
   # 重新部署时先停掉自己，否则端口检查会把旧实例算成「端口被占」
   stop_current
 
+  ensure_local_ignores
   check_environment
   install_tools
   check_port
@@ -699,6 +706,129 @@ cmd_uninstall() {
   printf '%s  如需彻底清理：rm -rf %s%s\n' "$C_DIM" "$ROOT" "$C_RESET"
 }
 
+# ---------------------------------------------------------------- 更新与回滚
+is_git_repo() {
+  have git && git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1
+}
+
+# 仓库里不发布 .gitignore，克隆到服务器上的部署没有忽略规则，
+# .deploy/、backend/.env、__pycache__ 会一直显示成未跟踪文件。
+# 写进 .git/info/exclude —— 这个文件是本地的，永远不会被提交。
+ensure_local_ignores() {
+  is_git_repo || return 0
+  local exclude="$ROOT/.git/info/exclude" marker='# ByCanvas 本地忽略（ByCanvas.sh 写入，不提交）'
+  [[ -e "$exclude" || -w "$ROOT/.git/info" ]] || return 0
+  grep -qF "$marker" "$exclude" 2>/dev/null && return 0
+  {
+    printf '\n%s\n' "$marker"
+    printf '.deploy/\nbackend/.env\nbackend/.venv/\n__pycache__/\n*.py[cod]\nnode_modules/\nlogs/\n*.log\n'
+  } >>"$exclude" 2>/dev/null || true
+}
+
+current_rev() { git -C "$ROOT" rev-parse HEAD 2>/dev/null || true; }
+
+# 代码已经拉到新版本，用**新版本的脚本**重新部署一次。
+# 必须 exec 重新起进程：git pull 可能正好改了 ByCanvas.sh，而 bash 是边读边执行的，
+# 继续跑旧进程会读到被改了一半的代码。
+redeploy_with_new_code() {
+  local -a args=(install --yes --port "$PORT" --host "$BIND")
+  [[ -n "$RUN_USER" ]] && args+=(--user "$RUN_USER")
+  # 原来是后台常驻的就别擅自升级成系统服务，反之亦然（install 会沿用现有服务）
+  [[ "$(service_mode)" == "nohup" ]] && args+=(--no-service)
+  log "服务" "用新版本重新部署：bash ByCanvas.sh ${args[*]}"
+  exec bash "$ROOT/ByCanvas.sh" "${args[@]}"
+}
+
+cmd_update() {
+  step "更新 ByCanvas"
+  load_conf
+  is_git_repo || die "这不是 git 仓库，无法自动更新。
+       请手工把新代码放到 $ROOT，然后执行：bash ByCanvas.sh install"
+  ensure_local_ignores
+
+  local remote branch before behind after
+  remote="$(git -C "$ROOT" remote get-url origin 2>/dev/null || true)"
+  [[ -n "$remote" ]] || die "没有配置 origin 远程仓库，无法更新"
+  branch="$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)"
+  before="$(current_rev)"
+  log "服务" "当前版本：${before:0:8}（分支 $branch，远程 $remote）"
+
+  # 只看**已跟踪文件**的改动：未跟踪的 .deploy/、backend/.env、__pycache__
+  # 属于本机运行产物，不该拦住更新（而且 stash -u 会把 .deploy/ 搬走，丢配置）。
+  if [[ -n "$(git -C "$ROOT" status --porcelain -uno)" ]]; then
+    warn "服务" "有已跟踪文件被本地修改过："
+    git -C "$ROOT" status --short -uno | sed 's/^/    /'
+    if (( ASSUME_YES )) || ask_yes_no "继续更新会先 stash 这些改动，继续吗？" n; then
+      git -C "$ROOT" stash push -m "bycanvas-update-$(date +%s)" >/dev/null \
+        && log "服务" "已 stash 本地改动（git stash list 可找回）"
+    else
+      log "服务" "已取消更新，代码未改动"
+      return 0
+    fi
+  fi
+
+  log "服务" "拉取远程更新…"
+  git -C "$ROOT" fetch --prune origin || die "git fetch 失败，检查网络与仓库访问权限"
+  git -C "$ROOT" rev-parse --verify --quiet "origin/$branch" >/dev/null \
+    || die "远程没有分支 $branch，无法更新"
+
+  behind="$(git -C "$ROOT" rev-list --count "HEAD..origin/$branch")"
+  if [[ "$behind" == "0" ]]; then
+    log "服务" "已经是最新版本（${before:0:8}），无需更新"
+    return 0
+  fi
+
+  log "服务" "落后 $behind 个提交，本次会更新到："
+  git -C "$ROOT" --no-pager log --oneline "HEAD..origin/$branch" | sed 's/^/    /'
+
+  # --ff-only：本地分叉时直接拒绝，而不是悄悄生成一个合并提交
+  git -C "$ROOT" merge --ff-only "origin/$branch" >/dev/null \
+    || die "无法快进合并（本地与远程分叉了），请手工处理后再执行 update"
+  after="$(current_rev)"
+  log "服务" "代码已更新：${before:0:8} → ${after:0:8}"
+
+  mkdir -p "$STATE_DIR"
+  printf '%s\n' "$before" >"$PREV_REV_FILE"
+  printf '%s\n' "$after" >"$REV_FILE"
+
+  redeploy_with_new_code
+}
+
+cmd_rollback() {
+  step "回滚到上一个版本"
+  load_conf
+  is_git_repo || die "这不是 git 仓库，无法回滚"
+  ensure_local_ignores
+  [[ -f "$PREV_REV_FILE" ]] || die "没有回滚记录。只有执行过 update 之后才能回滚"
+
+  local target current
+  target="$(cat "$PREV_REV_FILE")"
+  current="$(current_rev)"
+  [[ -n "$target" ]] || die "回滚记录是空的"
+  if [[ "$target" == "$current" ]]; then
+    log "服务" "当前已经是记录里的版本（${current:0:8}），无需回滚"
+    return 0
+  fi
+
+  if [[ -n "$(git -C "$ROOT" status --porcelain -uno)" ]]; then
+    warn "服务" "有已跟踪文件被本地修改过，回滚会丢弃它们："
+    git -C "$ROOT" status --short -uno | sed 's/^/    /'
+    if (( ASSUME_YES )) || ! ask_yes_no "确定丢弃这些改动并回滚吗？" n; then
+      log "服务" "已取消回滚"
+      return 0
+    fi
+  fi
+
+  log "服务" "回滚 ${current:0:8} → ${target:0:8}"
+  git -C "$ROOT" reset --hard "$target" >/dev/null || die "git reset 失败"
+  # 记录对调，方便再回滚一次就等于回到更新后的版本
+  printf '%s\n' "$current" >"$PREV_REV_FILE"
+  printf '%s\n' "$target" >"$REV_FILE"
+  log "服务" "代码已回滚"
+
+  redeploy_with_new_code
+}
+
 # ---------------------------------------------------------------- 入口
 # 被 `source` 进来时不执行主流程：单测要单独调用里面的函数（比如生成 systemd 单元）。
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
@@ -707,6 +837,8 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
 
   case "$ACTION" in
     install)   cmd_install ;;
+    update)    cmd_update ;;
+    rollback)  cmd_rollback ;;
     start)     cmd_start ;;
     stop)      cmd_stop ;;
     restart)   cmd_restart ;;
