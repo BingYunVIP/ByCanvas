@@ -22,14 +22,20 @@ import { readSSE } from './sse.js';
 
 import { modelCapabilities, loadCapabilityCatalog, optionValues } from './model-capabilities.js';
 import { imagePlanBody, readImagePlan, combineImageUsage } from './image-plan.js';
+import {
+  isTransportFailure,
+  shouldUseDirect,
+  writeTransportCache,
+} from './transport.js?v=20261106-transport1';
 
 export const DEFAULT_UPSTREAM = 'https://api.bingyun.vip/v1';
 
 export class ApiError extends Error {
-  constructor(message, status) {
+  constructor(message, status, options = {}) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.transportFailure = options.transportFailure === true;
   }
 }
 
@@ -63,7 +69,6 @@ export function normalizeBaseUrl(raw) {
  * 直连探测与缓存
  * ------------------------------------------------------------------------- */
 
-const CORS_CACHE_KEY = 'bycanvas.cors';
 let transportOverride = '';   // 'direct' | 'proxy' | ''
 
 export function setTransportOverride(value) {
@@ -75,29 +80,21 @@ export function transportName(profile) {
   return shouldTryDirect(profile) ? 'direct' : 'proxy';
 }
 
-function readCorsCache() {
-  try { return JSON.parse(localStorage.getItem(CORS_CACHE_KEY) || '{}') || {}; } catch { return {}; }
-}
-
 function markCors(profile, ok) {
-  try {
-    const cache = readCorsCache();
-    cache[normalizeBaseUrl(profile && profile.baseUrl)] = { ok: !!ok, at: Date.now() };
-    localStorage.setItem(CORS_CACHE_KEY, JSON.stringify(cache));
-  } catch { /* 隐私模式下写不了就算了，退化成每次都试 */ }
+  writeTransportCache(null, normalizeBaseUrl(profile && profile.baseUrl), ok);
 }
 
-/** 没探测过就先试直连；试过就按结果来。 */
+/** 没探测过或缓存已过期就先试直连；失败缓存只是短期提示。 */
 function shouldTryDirect(profile) {
-  if (transportOverride === 'proxy') return false;
-  if (transportOverride === 'direct') return true;
-  const hit = readCorsCache()[normalizeBaseUrl(profile && profile.baseUrl)];
-  return hit ? !!hit.ok : true;
+  return shouldUseDirect({
+    baseUrl: normalizeBaseUrl(profile && profile.baseUrl),
+    override: transportOverride,
+  });
 }
 
-/** fetch 被同源策略拦下时抛的是 TypeError（不是 ApiError），这是唯一的判据。 */
+/** 只把没有 HTTP 响应的网络/CORS 失败当成通道失败；HTTP 错误原样保留。 */
 function isCorsFailure(err) {
-  return !!err && (err instanceof TypeError || err.name === 'TypeError');
+  return isTransportFailure(err);
 }
 
 /* ---------------------------------------------------------------------------
@@ -639,6 +636,8 @@ async function collectUpstreamImages(payload) {
   const list = (payload && payload.data) || [];
   const images = [];
   const errors = [];
+  let transportFailure = false;
+  let nonTransportFailure = false;
   for (const item of list) {
     if (!item || typeof item !== 'object') continue;
     if (item.b64_json) {
@@ -652,11 +651,17 @@ async function collectUpstreamImages(payload) {
       const blob = await resp.blob();
       images.push({ b64: await blobToB64(blob), mime: blob.type || 'image/png' });
     } catch (err) {
+      if (isTransportFailure(err)) transportFailure = true;
+      else nonTransportFailure = true;
       errors.push(String((err && err.message) || err));
     }
   }
   if (!images.length) {
-    throw new ApiError(errors.length ? tr("无法取得生成的图片（{0}）", errors.slice(0, 2).join('；')) : tr("上游没有返回任何图片"), 0);
+    throw new ApiError(
+      errors.length ? tr("无法取得生成的图片（{0}）", errors.slice(0, 2).join('；')) : tr("上游没有返回任何图片"),
+      0,
+      { transportFailure: transportFailure && !nonTransportFailure },
+    );
   }
   return images;
 }

@@ -3589,19 +3589,26 @@ window.ByCanvasResize.createComposerResizer({
 /* 输入框：粘贴/拖入图片作为参考图 */
 let inputImages = []
 
-function fileToDataUrl(file) {
+function fileToDataUrl(file, mime = '') {
   return new Promise((resolve, reject) => {
     const r = new FileReader()
-    r.onload = () => resolve(String(r.result || ''))
+    r.onload = () => {
+      const raw = String(r.result || '')
+      const comma = raw.indexOf(',')
+      if (comma < 0 || !mime) { resolve(raw); return }
+      resolve(`data:${mime};base64,${raw.slice(comma + 1)}`)
+    }
     r.onerror = () => reject(new Error(tr("读取失败")))
     r.readAsDataURL(file)
   })
 }
-async function addInputImageFromFile(file, expectedConversationId = null) {
+async function addInputImageFromFile(file, expectedConversationId = null, inspectedFile = null) {
   if (!parameterApplicable('attach')) return false
-  if (!file || !file.type.startsWith('image/')) return false
+  const imageInput = window.ByCanvasImageInput
+  const inspected = inspectedFile || await imageInput?.inspectImageFile(file)
+  if (!inspected?.ok) return false
   try {
-    const url = await fileToDataUrl(file)
+    const url = await fileToDataUrl(file, inspected.mime)
     if (!parameterApplicable('attach')) return false
     if (expectedConversationId != null && expectedConversationId !== activeId) return false
     if (inputImages.length >= MAX_INPUT_IMAGES) {
@@ -3643,9 +3650,28 @@ function openImagePicker() {
 
 async function handleImageFiles(fileList) {
   if (!parameterApplicable('attach')) { showToast(tr("当前模型不支持参考图（OpenRouter 未标注它支持图像输入）"), 'info'); return }
-  const files = Array.from(fileList || []).filter((f) => f && f.type.startsWith('image/'))
-  if (files.length === 0) {
+  const selected = Array.from(fileList || []).filter(Boolean)
+  if (selected.length === 0) {
     showToast(tr("请选择图片文件"), 'info')
+    return
+  }
+  const imageInput = window.ByCanvasImageInput
+  const files = []
+  const rejected = []
+  for (const file of selected) {
+    const inspected = await imageInput?.inspectImageFile(file)
+    if (inspected?.ok) files.push({ file, inspected })
+    else rejected.push(imageInput?.imageInputFailure(file, inspected)
+      || { name: file.name || '', messageKey: '文件不是可识别的 PNG、JPEG 或 WebP 图片' })
+  }
+  const showRejected = () => {
+    const visible = rejected.slice(0, 3).map((item) => `${item.name || tr('未命名文件')}：${tr(item.messageKey)}`)
+    if (rejected.length > visible.length) visible.push(tr('以及其他 {0} 个文件', rejected.length - visible.length))
+    if (visible.length) showToast(tr('未添加以下文件：{0}', visible.join('；')), 'error')
+  }
+  if (files.length === 0) {
+    if (rejected.length) showRejected()
+    else showToast(tr("请选择图片文件"), 'info')
     return
   }
   const room = MAX_INPUT_IMAGES - inputImages.length
@@ -3655,11 +3681,12 @@ async function handleImageFiles(fileList) {
   }
   const picked = files.slice(0, room)
   let added = 0
-  for (const file of picked) {
-    if (await addInputImageFromFile(file)) added += 1
+  for (const item of picked) {
+    if (await addInputImageFromFile(item.file, null, item.inspected)) added += 1
   }
   if (added > 0) {
     showToast(tr("已添加 {0} 张参考图", added), 'success')
+    if (rejected.length) showRejected()
     if (files.length > picked.length) showToast(tr("最多 {0} 张，已忽略多余图片", MAX_INPUT_IMAGES), 'info')
   } else {
     showToast(tr("没有可添加的图片"), 'error')
@@ -3667,7 +3694,9 @@ async function handleImageFiles(fileList) {
 }
 
 document.getElementById('imageFileInput').addEventListener('change', (e) => {
-  const files = e.target.files
+  // FileList is live in Chromium; take a real snapshot before clearing the input.
+  const files = window.ByCanvasImageInput?.snapshotFileList(e.target.files)
+    || Array.from(e.target.files || [])
   e.target.value = ''   // 允许重复选同一个文件
   void handleImageFiles(files)
 })
@@ -3692,7 +3721,7 @@ function openInputImage(i) {
 }
 promptInput.addEventListener('paste', (event) => {
   const files = Array.from(event.clipboardData?.items || [])
-    .filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+    .filter((item) => item.kind === 'file')
     .map((item) => item.getAsFile()).filter(Boolean)
   if (!files.length) return
   event.preventDefault()
@@ -3701,7 +3730,7 @@ promptInput.addEventListener('paste', (event) => {
 promptInput.addEventListener('dragover', (event) => { event.preventDefault() })
 promptInput.addEventListener('drop', (event) => {
   event.preventDefault()
-  const files = Array.from(event.dataTransfer?.files || []).filter((file) => file.type.startsWith('image/'))
+  const files = Array.from(event.dataTransfer?.files || [])
   if (files.length) void handleImageFiles(files)
   else {
     const text = event.dataTransfer?.getData('text/plain')
